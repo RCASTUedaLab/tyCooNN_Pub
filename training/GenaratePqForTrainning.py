@@ -1,0 +1,143 @@
+import preprocess.TrimAndNormalize as tn
+from multiprocessing import Pool
+import utils.tyUtils as ut
+import pandas as pd
+import csv
+from collections import Counter
+
+def split_list(lst, n):
+    splitted = []
+    for i in reversed(range(1, n + 1)):
+        split_point = len(lst)//i
+        splitted.append(lst[:split_point])
+        lst = lst[split_point:]
+    return splitted
+def flatten(lst):
+    return [item for sublist in lst for item in sublist]
+
+
+def generatePqForTrainingAll(paramPath,listOfIOPath,takeCount=12000):
+
+    f = open(listOfIOPath, 'r')
+    tsv = csv.reader(f, delimiter='\t')
+
+    # tRNAlabel indir   outpq
+    for row in tsv:
+
+        tRNALabel, indirs, outpq, outstat = row[0],row[1],row[2],row[3]
+        outpq = outpq.strip(" ")
+        outpq = outpq.strip("\t")
+        print("doing..",tRNALabel,outpq)
+        genaratePqForTraining(paramPath, tRNALabel, indirs, outpq, outstat,takeCount)
+
+def generatePqForTrainingAllWithLabel(paramPath,listOfIOPath,label,takeCount=12000):
+
+    f = open(listOfIOPath, 'r')
+    tsv = csv.reader(f, delimiter='\t')
+
+    # tRNAlabel indir   outpq
+    for row in tsv:
+
+        tRNALabel, indirs, outpq, outstat = row[0],row[1],row[2],row[3]
+        outpq = outpq.strip(" ")
+        outpq = outpq.strip("\t")
+        print("doing..",tRNALabel,outpq)
+        genaratePqForTrainingWithLabel(paramPath, tRNALabel, indirs, outpq, outstat,label,takeCount)
+
+def genaratePqForTraining(paramPath,tRNALabel,indirs,outpq,outstat,takeCount=12000):
+
+    param = ut.get_parameter(paramPath)  # setting of file path and max core
+
+    indirs = indirs.split(",")
+    reads = ut.get_fast5_reads_dirs(indirs, param.ncore)
+    
+    read_chunks = split_list(reads,param.ncore)
+    trim_chunks = []
+    for rc in read_chunks:
+        trim_chunks.append(tn.trimAdaptor(rc,param))
+    trimmed_filterFlgged_read = flatten(trim_chunks)
+
+    #trimmed_filterFlgged_read = tn.trimAdaptor(reads,param)
+
+    print_trim_stat(trimmed_filterFlgged_read,tRNALabel,outstat)
+
+    #
+    filtered_reads = [read for read in trimmed_filterFlgged_read \
+                      if read.filterFlg == 0]
+    if takeCount is not None:
+        filtered_reads = filtered_reads[0:takeCount]
+    format_reads = tn.formatSignal(filtered_reads,param)
+    #
+    datalist = []
+    for read in format_reads:
+        tp = (read.read_id,tRNALabel,read.formatSignal)
+        datalist.append(tp)
+
+    df = pd.DataFrame(datalist, columns=['read_id', 'trna', 'trimsignal'])
+    df.to_parquet(outpq)
+
+    return reads
+
+def restrict_label(reads,label):
+    restrict_reads = []
+    for read in reads:
+        if read.map_attrs is not None:
+            map_attrs = read.map_attrs
+            if map_attrs['tRNA_infer'] == label:
+                restrict_reads.append(read)
+    return restrict_reads
+
+def genaratePqForTrainingWithLabel(paramPath,tRNALabel,indirs,outpq,outstat,label,takeCount=12000):
+
+    param = ut.get_parameter(paramPath)  # setting of file path and max core
+
+    indirs = indirs.split(",")
+    reads = ut.get_fast5_reads_dirs(indirs, param.ncore)
+
+    restrict_reads = restrict_label(reads,label)
+    
+    read_chunks = split_list(restrict_reads,param.ncore)
+    trim_chunks = []
+    for rc in read_chunks:
+        trim_chunks.append(tn.trimAdaptor(rc,param))
+    trimmed_filterFlgged_read = flatten(trim_chunks)
+
+    #trimmed_filterFlgged_read = tn.trimAdaptor(reads,param)
+
+    print_trim_stat(trimmed_filterFlgged_read,tRNALabel,outstat)
+
+    #
+    filtered_reads = [read for read in trimmed_filterFlgged_read \
+                      if read.filterFlg == 0]
+    filtered_reads = filtered_reads[0:takeCount]
+    format_reads = tn.formatSignal(filtered_reads,param)
+    #
+    datalist = []
+    for read in format_reads:
+        tp = (read.read_id,label,read.formatSignal)
+        datalist.append(tp)
+
+    df = pd.DataFrame(datalist, columns=['read_id', 'trna', 'trimsignal'])
+    df.to_parquet(outpq)
+
+    return reads
+
+def print_trim_stat(reads,tname,outstat):
+
+    fs = open(outstat,'a')
+    flags = [read.filterFlg for read in reads]
+    flag_dic = dict(Counter(flags))
+    flag_name = {0:'pass',1:'MeanQ',2:'Maxsignallen',3:'MaxdurationRate',
+                 4:'DeltaMin',5:'DeltaMax',6:'ReadlenMin',7:'ReadlenMax',
+                 8:'TraimFail'}
+    fresult = [0] * 9
+    for fkey in sorted(flag_name.keys()):
+        if fkey in flag_dic:
+            fcount = flag_dic[fkey]
+            fresult[fkey] = fcount
+    tot = sum(fresult)
+    fs.write("STAT ] %s: N: %d " % (tname,tot))
+    for fkey in sorted(flag_name.keys()):
+        fs.write("%s: %d " % (flag_name[fkey],fresult[fkey]))
+    fs.write("\n")
+    fs.close()

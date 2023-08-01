@@ -1,0 +1,9 @@
+inp_loc: binary pq file like, gly3.pq
+out_loc: output csv file like, gly3.csv
+model_loc: model location
+param_loc: make_pq_settings.yaml
+writeSingle5: False
+threshold: 0.70
+runmode: production
+gpu: 1
+gpu_memory_limit: 20

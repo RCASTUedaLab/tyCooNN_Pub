@@ -1,0 +1,10 @@
+inp_loc: fast5_location
+out_loc: output_location
+model_loc: trained_model_location
+fasta_loc: path for ecolitRNA_full.fa
+param_loc: preprocessing and other parameters yaml file
+writeSingle5: False
+threshold: 0.70
+runmode: production
+gpu: 1
+gpu_memory_limit: 20
