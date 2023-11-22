@@ -1,0 +1,3 @@
+while read -r line;do
+  ln -sf /mnt/share/bhaskar/rcc_data/${line}/${line}.pq ${line}.pq
+done < 'rcc_species_pure'

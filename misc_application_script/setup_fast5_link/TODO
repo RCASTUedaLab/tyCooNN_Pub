@@ -1,0 +1,14 @@
+change directory to /mnt/share/bhaskar and copy ivt_data from current directory to there.
+Also copy make_ivt_data_link.py to /mnt/share/bhaskar
+Running make_ivt_data_link.py from /mnt/share/bhaskar will link all isodecoder fast5 files
+for ivt to ivt_data directory.
+Now we should prepare parquet files in ivt_data directory. For this from inside ivt_data
+use ivt_species_default.sh which calls make_parquet.py and make .pq file for each 
+isodecoder under the each isodecoder directory. Then make a directory named pq and link
+parquet files under isodecoder directories to pq directory.
+
+*****************************************************************************************
+change directory to /mnt/share/bhaskar and copy rcc_data from current directory to there.
+Also copy make_rcc_data_link.py and make_rcc_data_spike_link.py to /mnt/share/bhaskar
+Running make_rcc_data_link.py and make_rcc_data_spike_link.py from /mnt/share/bhaskar
+will link all isodecoder fast5 files for rcc to rcc_data directory
