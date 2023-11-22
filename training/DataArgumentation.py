@@ -8,14 +8,15 @@ import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
 import utils.tyUtils as ut
 from multiprocessing import Pool
+import psutil,os
 
-def augment_data(signals, labels, signal_size,augmentation_factor):
+def augment_data(signals, labels, signal_size,augmentation_factor,ncore=8):
     if augmentation_factor <= 1:
         print('Not performing data augmentation')
         signals,labels = suffle(signals,labels)
         return signals, labels
     print('start data argumentaion')
-    n_cores = 8
+    n_cores = ncore
     #n_cores = multiprocessing.cpu_count() // 5
     print('n_cores', n_cores)
     pool = Pool(n_cores)
@@ -35,8 +36,6 @@ def augment_data(signals, labels, signal_size,augmentation_factor):
     augmented_signals, augmented_labels = margeAndSuffle(results,signal_size)
     print('end data merge')
     return augmented_signals, augmented_labels
-
-
 
 #@jit(nopython=True)
 def margeAndSuffle(results,signal_size):

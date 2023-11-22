@@ -30,7 +30,7 @@ def generatePqForTrainingAll(paramPath,listOfIOPath,takeCount=12000):
         print("doing..",tRNALabel,outpq)
         genaratePqForTraining(paramPath, tRNALabel, indirs, outpq, outstat,takeCount)
 
-def generatePqForTrainingAllWithLabel(paramPath,listOfIOPath,label,takeCount=12000):
+def generatePqForTrainingAllWithLabel(paramPath,listOfIOPath,label=None,takeCount=12000):
 
     f = open(listOfIOPath, 'r')
     tsv = csv.reader(f, delimiter='\t')
@@ -87,14 +87,17 @@ def restrict_label(reads,label):
                 restrict_reads.append(read)
     return restrict_reads
 
-def genaratePqForTrainingWithLabel(paramPath,tRNALabel,indirs,outpq,outstat,label,takeCount=12000):
+def genaratePqForTrainingWithLabel(paramPath,tRNALabel,indirs,outpq,outstat,label=None,takeCount=12000):
 
     param = ut.get_parameter(paramPath)  # setting of file path and max core
 
     indirs = indirs.split(",")
     reads = ut.get_fast5_reads_dirs(indirs, param.ncore)
 
-    restrict_reads = restrict_label(reads,label)
+    if label is not None:
+        restrict_reads = restrict_label(reads,label)
+    else:
+        restrict_reads = reads
     
     read_chunks = split_list(restrict_reads,param.ncore)
     trim_chunks = []
@@ -109,11 +112,17 @@ def genaratePqForTrainingWithLabel(paramPath,tRNALabel,indirs,outpq,outstat,labe
     #
     filtered_reads = [read for read in trimmed_filterFlgged_read \
                       if read.filterFlg == 0]
-    filtered_reads = filtered_reads[0:takeCount]
+    if takeCount is not None:
+        filtered_reads = filtered_reads[0:takeCount]
     format_reads = tn.formatSignal(filtered_reads,param)
     #
     datalist = []
     for read in format_reads:
+        if read.map_attrs is not None:
+            map_attrs = read.map_attrs
+            label = map_attrs['tRNA_infer']
+        else:
+            label = None
         tp = (read.read_id,label,read.formatSignal)
         datalist.append(tp)
 

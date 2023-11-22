@@ -165,8 +165,6 @@ def train(dirpath,outdir,epoch = 50,data_argument = 0):
 
         signalgen = ArgumentlGenerator(X_train, Y_train, batch_size,wlen,num_classes,data_argument,epoch)
         batchgen = BatchIterator(X_test, Y_test, batch_size,wlen,num_classes,epoch)
-        # history = model.fit(signalgen.flow(),steps_per_epoch=signalgen.numbatch(), verbose=1,epochs=epoch,
-        #           shuffle=False, validation_data=(test_x, test_y),callbacks=[modelCheckpoint])
         history = model.fit_generator(signalgen.flow(),steps_per_epoch=signalgen.numbatch(),
                                       validation_data=batchgen.flow(),validation_steps=batchgen.numbatch(),epochs=epoch,callbacks=[modelCheckpoint])
 
