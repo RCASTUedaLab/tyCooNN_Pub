@@ -10,7 +10,7 @@ class genPQ:
     OUTPQ_DIR = "/mnt/share/bhaskar/pq_db/ivt_8k/"
     OUTSTAT_LOC   = "/mnt/share/bhaskar/pq_db/ivt_8k/"
     INP_DIR   = "/data/suzukilab/seqdata/basecall/split/"
-    SETTINGS  = "../resources/makePQ.yaml"
+    SETTINGS  = "../resource/makePQ.yaml"
     
     def __init__(self,settings_file = SETTINGS,takeCount = 12000,batch_num = None, 
                  outpq_dir = OUTPQ_DIR, inp_dir = INP_DIR, 

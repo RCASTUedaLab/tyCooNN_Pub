@@ -11,7 +11,7 @@ class genPQ:
     OUTPQ_DIR = "/mnt/share/bhaskar/pq_db/rcc_12k/yeast/"
     OUTSTAT   = "/mnt/share/bhaskar/pq_db/rcc_12k/yeast/stat.txt"
     INP_DIR   = "/data/share/spikein_fast5/basecalled"
-    SETTINGS  = "../resources/makePQ.yaml"
+    SETTINGS  = "../resource/makePQ.yaml"
 
     def __init__(self,settings_file = SETTINGS):
         self.settings = settings_file
