@@ -27,9 +27,13 @@ def getTRNAlist(trnapath):
     return trnas
 
 import os.path
-#def evaluate(paramPath,indirs,outdir,outpath,fasta,fasta5out,threshold=0.75,runmode='production'):
 
-def evaluate(opts):
+def evaluate(opts,indir=None,outdir=None):
+    if indir is None and outdir is None:
+        evaluate_simple(opts)
+
+
+def evaluate_simple(opts):
 
     paramPath = opts['param_loc']
     indirs    = opts['inp_loc']
