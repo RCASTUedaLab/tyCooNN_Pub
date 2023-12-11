@@ -1,7 +1,6 @@
 import pandas as pd
 from tensorflow import keras
 import nnmodels.CNNWavenet as cnnwavenet
-from numba import jit
 import multiprocessing
 import csv
 import numpy as np
