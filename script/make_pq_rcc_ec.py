@@ -12,14 +12,14 @@ class genPQ:
     OUTPQ_DIR = "path_to_parquet_directory"           # Output location 
     OUTSTAT   = "path_to_fast5_list_file/stat.txt"    # Preprocessing statistics, output
     INP_DIR   = "path_to_fast5_basecalled/"           # input
-    SETTINGS  = "../resource/makePQ.yaml"             # Preprocessing options, input
+    SETTINGS  = "../resource/settings.yaml"             # Preprocessing options, input
     '''
     
     LIST_FILE = "/mnt/share/bhaskar/pq_db/rcc_12k/ec/inputs.txt"
     OUTPQ_DIR = "/mnt/share/bhaskar/pq_db/rcc_12k/ec/"
     OUTSTAT   = "/mnt/share/bhaskar/pq_db/rcc_12k/ec/stat.txt"
-    INP_DIR   = "/share/trna/testdata/ecolibasecalled/"
-    SETTINGS  = "../resource/makePQ.yaml"
+    INP_DIR   = "/mnt/share/suzukilab/rcc/"
+    SETTINGS  = "../resource/settings.yaml"
     
     def __init__(self,settings_file = SETTINGS):
         self.settings = settings_file
