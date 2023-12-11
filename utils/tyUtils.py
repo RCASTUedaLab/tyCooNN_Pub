@@ -1,7 +1,7 @@
 import glob
 from typing import Dict
-from tyRead import Read
-from tyParam import tyParam
+from utils.tyRead import Read
+from utils.tyParam import tyParam
 import multiprocessing
 from multiprocessing import Pool
 from functools import partial
