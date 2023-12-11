@@ -30,20 +30,6 @@ def generatePqForTrainingAll(paramPath,listOfIOPath,takeCount=12000):
         print("doing..",tRNALabel,outpq)
         genaratePqForTraining(paramPath, tRNALabel, indirs, outpq, outstat,takeCount)
 
-def generatePqForTrainingAllWithLabel(paramPath,listOfIOPath,label=None,takeCount=12000):
-
-    f = open(listOfIOPath, 'r')
-    tsv = csv.reader(f, delimiter='\t')
-
-    # tRNAlabel indir   outpq
-    for row in tsv:
-
-        tRNALabel, indirs, outpq, outstat = row[0],row[1],row[2],row[3]
-        outpq = outpq.strip(" ")
-        outpq = outpq.strip("\t")
-        print("doing..",tRNALabel,outpq)
-        genaratePqForTrainingWithLabel(paramPath, tRNALabel, indirs, outpq, outstat,label,takeCount)
-
 def genaratePqForTraining(paramPath,tRNALabel,indirs,outpq,outstat,takeCount=12000):
 
     param = ut.get_parameter(paramPath)  # setting of file path and max core
@@ -71,59 +57,6 @@ def genaratePqForTraining(paramPath,tRNALabel,indirs,outpq,outstat,takeCount=120
     datalist = []
     for read in format_reads:
         tp = (read.read_id,tRNALabel,read.formatSignal)
-        datalist.append(tp)
-
-    df = pd.DataFrame(datalist, columns=['read_id', 'trna', 'trimsignal'])
-    df.to_parquet(outpq)
-
-    return reads
-
-def restrict_label(reads,label):
-    restrict_reads = []
-    for read in reads:
-        if read.map_attrs is not None:
-            map_attrs = read.map_attrs
-            if map_attrs['tRNA_infer'] == label:
-                restrict_reads.append(read)
-    return restrict_reads
-
-def genaratePqForTrainingWithLabel(paramPath,tRNALabel,indirs,outpq,outstat,label=None,takeCount=12000):
-
-    param = ut.get_parameter(paramPath)  # setting of file path and max core
-
-    indirs = indirs.split(",")
-    reads = ut.get_fast5_reads_dirs(indirs, param.ncore)
-
-    if label is not None:
-        restrict_reads = restrict_label(reads,label)
-    else:
-        restrict_reads = reads
-    
-    read_chunks = split_list(restrict_reads,param.ncore)
-    trim_chunks = []
-    for rc in read_chunks:
-        trim_chunks.append(tn.trimAdaptor(rc,param))
-    trimmed_filterFlgged_read = flatten(trim_chunks)
-
-    #trimmed_filterFlgged_read = tn.trimAdaptor(reads,param)
-
-    print_trim_stat(trimmed_filterFlgged_read,tRNALabel,outstat)
-
-    #
-    filtered_reads = [read for read in trimmed_filterFlgged_read \
-                      if read.filterFlg == 0]
-    if takeCount is not None:
-        filtered_reads = filtered_reads[0:takeCount]
-    format_reads = tn.formatSignal(filtered_reads,param)
-    #
-    datalist = []
-    for read in format_reads:
-        if read.map_attrs is not None:
-            map_attrs = read.map_attrs
-            label = map_attrs['tRNA_infer']
-        else:
-            label = None
-        tp = (read.read_id,label,read.formatSignal)
         datalist.append(tp)
 
     df = pd.DataFrame(datalist, columns=['read_id', 'trna', 'trimsignal'])

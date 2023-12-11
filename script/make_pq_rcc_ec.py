@@ -3,7 +3,7 @@ import os
 import sys
 import fnmatch
 sys.path.append("../")
-import training.GenaratePqForTrainning as pqg
+import preprocess.MakeTrainingPq as mkpq
 
 class genPQ:
 
@@ -58,7 +58,7 @@ class genPQ:
     def generatePq(self,takeCount=12000):
         print("Writting from: ",self.out_file)
         print("Use settings from: ",self.settings)
-        return pqg.generatePqForTrainingAll(paramPath=self.settings, listOfIOPath=self.out_file, takeCount=takeCount)
+        return mkpq.generatePqForTrainingAll(paramPath=self.settings, listOfIOPath=self.out_file, takeCount=takeCount)
 
 g = genPQ()
 g.writeIOFile()
