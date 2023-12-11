@@ -7,7 +7,7 @@ ascii_score_dict = {ascii_order[k]: k for k in range(len(ascii_order))}
 class Read():
 
 
-    def __init__(self, read_id, signal, trace,move, fastq,duration,map_attrs=None):
+    def __init__(self, read_id, signal, trace,move, fastq,duration):
 
         self.read_id = read_id
         tracelen = len(trace)
@@ -37,6 +37,4 @@ class Read():
         #trim
         self.trimSuccess = False
         self.filterFlg = 0
-
-        self.map_attrs = map_attrs
 

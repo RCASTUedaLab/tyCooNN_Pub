@@ -97,37 +97,7 @@ def get_fast5_files_in_dir(directory:str,MAX_CORE:int):
     ncore = get_number_of_core(MAX_CORE=MAX_CORE)
     filelist = list(sorted(glob.glob(directory + '/**/*.fast5',recursive=True)))
     print("Number of fast5 files: %d" % len(filelist))
-    with Pool(ncore) as p:
-        ok_test = p.map(check_ok_file,filelist)
-    filelist2 = []
-    for i,file in enumerate(filelist):
-        if ok_test[i]:
-            filelist2.append(file)
-    print("Number of fast5 files [ok]: %d" % len(filelist2))
-    return filelist2
-
-def check_ok_file(file:str):
-    print("check %s" % file)
-    try:
-        with get_fast5_file(file,mode='r') as f5:
-            for read in f5.get_reads():
-                readid = read.read_id
-                row = read.handle["Raw"]
-                signal = row["Signal"][()]
-                channel_info = read.get_channel_info()
-                digitisation = channel_info['digitisation']
-                offset = channel_info['offset']
-                range_value = channel_info['range']
-                read_info = read.handle[read.raw_dataset_group_name].attrs
-                duration = read_info['duration']
-                basecall_run = read.get_latest_analysis("Basecall_1D")
-                fastq = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Fastq")
-                trace = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Trace")
-                move = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Move")
-            ok = True
-    except:
-        ok = False
-    return ok
+    return filelist
 
 def getOrNone(groups,partialKey):
     r = None
@@ -155,44 +125,16 @@ def get_fast5_reads_from_file(fast5_filepath:str):
             duration = read_info['duration']
 
             # Search for valid analysis dataset
-            analyses = read.list_analyses()
-            basecall_run = None
-            mapinfo_run = None
-            for analysis,bpath in analyses:
-                trace = read.get_analysis_dataset(bpath,"BaseCalled_template/Trace")
-                if trace is not None: basecall_run = bpath
-                if 'filterflg' in read.get_analysis_attributes(bpath): mapinfo_run = bpath
-            if basecall_run is None:
-                basecall_run = read.get_latest_analysis("Basecall_1D")
-            #basecall_run = read.get_latest_analysis("Basecall_1D")
+            basecall_run = read.get_latest_analysis("Basecall_1D")
 
             fastq = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Fastq")
             trace = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Trace")
             move = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Move")
 
-            if mapinfo_run is None:
-                filterflg = -1
-                filterpass = False
-                trimSuccess = False
-                tRNA_infer = None
-                tRNAIndex = -1
-                softmax_prob = 0.0
-                map_attrs = None
-            else:
-                attrs = read.get_analysis_attributes(mapinfo_run)
-                filterflg = attrs['filterflg']
-                filterpass = attrs['filterpass']
-                trimSuccess = attrs['trimSuccess']
-                tRNA_infer = attrs['tRNA']
-                tRNAIndex = attrs['tRNAIndex']
-                softmax_prob = attrs['value']
-                map_attrs = {'filterflg': filterflg, 'filterpass': filterpass, 'trimSuccess': trimSuccess,
-                             'tRNA_infer': tRNA_infer, 'tRNAIndex': tRNAIndex, 'softmax_prob': softmax_prob}
-
             #read_id, signal, tracelen, fastq
             if len(trace) >0:
                 #read_id, signal, trace, move, fastq, duration):
-                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration,map_attrs=map_attrs)
+                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration)
                 reads.append(read)
 
     return reads
