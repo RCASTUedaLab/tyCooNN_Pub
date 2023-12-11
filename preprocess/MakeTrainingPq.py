@@ -37,13 +37,7 @@ def genaratePqForTraining(paramPath,tRNALabel,indirs,outpq,outstat,takeCount=120
     indirs = indirs.split(",")
     reads = ut.get_fast5_reads_dirs(indirs, param.ncore)
     
-    read_chunks = split_list(reads,param.ncore)
-    trim_chunks = []
-    for rc in read_chunks:
-        trim_chunks.append(tn.trimAdaptor(rc,param))
-    trimmed_filterFlgged_read = flatten(trim_chunks)
-
-    #trimmed_filterFlgged_read = tn.trimAdaptor(reads,param)
+    trimmed_filterFlgged_read = tn.trimAdaptor(reads,param)
 
     print_trim_stat(trimmed_filterFlgged_read,tRNALabel,outstat)
 
