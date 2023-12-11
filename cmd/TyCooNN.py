@@ -1,4 +1,7 @@
 import click
+
+import sys
+sys.path.append("../")
 import preprocess.MakeTrainingPq as mkpq
 
 import inference.Inference as inference
@@ -23,10 +26,10 @@ def makeParquetEach(paramPath,tRNALabel,indir,outpq,outstat,takeCount):
 
 
 @cmd.command()
-@click.option('-ls', '--listOfIOPath')
-@click.option('-c', '--takeCount',default=12000)
-@click.option('-p', '--paramPath',default='settings.yaml')
-def makeParquetAll(listOfIOPath,paramPath,takeCount):
+@click.option('-i','--listOfIOPath',"listOfIOPath")
+@click.option('-c', '--takeCount',"takeCount",default=12000)
+@click.option('-p', '--paramPath',"paramPath",default='settings.yaml')
+def makeparquetall(listOfIOPath,takeCount,paramPath):
 
     mkpq.generatePqForTrainingAll(paramPath,listOfIOPath,takeCount)
 

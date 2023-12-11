@@ -33,7 +33,7 @@ class genPQ:
         self.outstat = stat_file
         self.inp_dir = inp_dir
 
-        files = glob.glob(inp_dir+"/*/")
+        files = sorted(glob.glob(inp_dir+"/*/"))
 
         for f in files:
             dirlist = {}
@@ -44,8 +44,7 @@ class genPQ:
             print(dirlist)
 
             # Change accordingly the next two lines
-            basename = os.path.basename(os.path.dirname(f)).replace("ecoli_rcc_","")
-            basename = basename.split("_")[1]
+            basename = os.path.basename(os.path.dirname(f))
 
             pqpath = outpq_dir + basename + ".pq"
             statpath = stat_file
@@ -63,4 +62,4 @@ class genPQ:
 g = genPQ()
 g.writeIOFile()
 # 12000 reads taken per tRNA
-stat = g.generatePq(takeCount=12000)
+#stat = g.generatePq(takeCount=12000)
