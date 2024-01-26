@@ -62,7 +62,6 @@ def maptobam(dir,bam,ref,refdir,matrix):
 
     files = glob.glob(dir)
     mtx = open(matrix, 'w')
-
     bam_file = pysam.AlignmentFile(bam, 'wb', header=getHeader(ref))
 
     for file in files:

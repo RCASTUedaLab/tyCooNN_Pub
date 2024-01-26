@@ -107,7 +107,7 @@ def get_fast5_files_in_dir(directory:str,MAX_CORE:int):
     return filelist2
 
 def check_ok_file(file:str):
-    print("check %s" % file)
+    # print("check %s" % file)
     try:
         with get_fast5_file(file,mode='r') as f5:
             for read in f5.get_reads():
@@ -126,7 +126,9 @@ def check_ok_file(file:str):
                 move = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Move")
             ok = True
     except:
+
         ok = False
+    print(file,ok)
     return ok
 
 def getOrNone(groups,partialKey):

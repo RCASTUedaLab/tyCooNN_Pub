@@ -28,6 +28,7 @@ def getTRNAlist(trnapath):
 import os.path
 #def evaluate(paramPath,indirs,outdir,outpath,fasta,fasta5out,threshold=0.75,runmode='production'):
 
+
 def evaluate(opts):
 
     paramPath = opts['param_loc']

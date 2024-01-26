@@ -1,3 +1,5 @@
+import os
+
 from Bio import SeqIO
 import pysam
 
@@ -6,11 +8,7 @@ import pysam
 # ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
 # outdir = "/mnt/share/ueda/minimapmapping/"
 
-bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
-bam1 = "/mnt/share/ueda/trna_data/bam/ivt_sorted.bam"
-ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
-matrixref = "/mnt/share/ueda/trna_data/tRNAEcoli.csv"
-outdir = "/mnt/share/ueda/minimapmapping/"
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -87,26 +85,6 @@ def getDiffLog(a,b):
         ret.append(lg)
     return ret
 
-# def getRange(id):
-#
-#     lst = []
-#     # 1st
-#     if id !="His":
-#         lst.append((0,1))
-#
-#     #  2nd
-#     if id in ["Arg5","Cys","Gln1","Gln2","Glu","Gly1","Gly2","Ile2","Ile2v","Sec","Ser1","Ser2","Ser3","Ser5"]:
-#         lst.append((16, 2))
-#     elif id in ["fMet1","fMet2","Pro1","Pro2","Pro3"]
-#         pass
-#     else:
-#         lst.append((17,1))
-#
-#
-#
-#         lst.append((20, 2))
-#         lst.append((45, 19))
-#     return lst
 
 def getRange(row):
 
@@ -176,7 +154,10 @@ from matplotlib.colors import TwoSlopeNorm
 import pandas as pd
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as patches
-def compare(bam1,bam2,ref,matrixref,outdir):
+def compare(bam1,bam2,ref,matrixref,outdir,ez):
+
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
     samfile1 = pysam.AlignmentFile(bam1, "rb")
     samfile2 = pysam.AlignmentFile(bam2, "rb")
@@ -221,7 +202,7 @@ def compare(bam1,bam2,ref,matrixref,outdir):
         print(id,len(log_ratio))
 
 
-    out = outdir+"/rcc_ivt.png"
+    out = outdir+"/"+ez+".png"
 
     plt.figure(figsize=(30, 10),dpi=300)
     fig, ax = plt.subplots(figsize=(30, 10))
@@ -255,13 +236,13 @@ def compare(bam1,bam2,ref,matrixref,outdir):
         y, x = cell
         plt.gca().add_patch(patches.Rectangle((x, y), 1, 1, fill=False, edgecolor='black', lw=1,linestyle='--'))
 
-    plt.savefig(out)
+    plt.savefig(out, dpi=300)
 
     samfile1.close()
     samfile2.close()
 
     #analyse modification
-    analyseMod(matrix,modindexs,modlist)
+    analyseMod(matrix,modindexs,modlist,outdir)
 
     #ROC analysis
     analyseROC(matrix, modindexs, modlist,outdir)
@@ -353,7 +334,7 @@ def analyseROC(matrix, modindexs, modlist,outdir):
 
 
     out = outdir + "/roc.png"
-    plt.savefig(out)
+    plt.savefig(out, dpi=300)
 
 
 def analyzeResolution(matrix,modindexs,row,col):
@@ -391,13 +372,16 @@ def analyzeResolution(matrix,modindexs,row,col):
 
     return right+left+1
 
-def analyseMod(matrix,modindexs,modlist):
+import math
+def analyseMod(matrix,modindexs,modlist,outdir):
 
     d = {}
     n = 0
+    modcols = set()
     for mod in modlist:
 
       row,col = modindexs[n]
+      modcols.add(col)
       n+=1
       # print(mod,matrix[row][col],row,col)
       val = matrix[row][col]
@@ -415,7 +399,44 @@ def analyseMod(matrix,modindexs,modlist):
             pk = chr(0x03A8)
         print(pk,d[k])
 
-    plotScater(d)
+    unmodlist = []
+    # take mean val of nonmod column
+    valsum = 0
+    valnum = 0
+    print("modcols",modcols,len(matrix[1]),len(matrix))
+
+    for n in range(0,76):
+        if n not in modcols:
+            for m in range(len(matrix)):
+                val = matrix[m][n]
+                if val >=0:
+                    valsum = valsum + val
+                    valnum +=1
+                    resolution = analyzeResolution(matrix, modindexs, m, n)
+                    unmodlist.append((val,resolution))
+
+    avenonmod = valsum/valnum
+    unmodlistvalue =  [item[0] for item in unmodlist]
+    nomodsd = np.std(unmodlistvalue, ddof=1)
+
+    plotScater(d,outdir,avenonmod,nomodsd)
+
+    data = []
+    d["unmod"] = unmodlist
+    keys = sorted(d.keys())
+    for mod in keys:
+
+        nlist = d[mod]
+        valuelist = [-7 if item[0] == 0 else math.log2(item[0]) for item in nlist if item[0] >= 0]
+        data.append(valuelist)
+
+    plt.clf()
+    plt.boxplot(data)
+    plt.title('Mismatch Ratio for Each Modification')
+    plt.xlabel('Modifications')
+    plt.ylabel('mismatch ratio')
+    plt.xticks(list(range(len(keys))), keys)
+    plt.savefig(outdir + "/modsstats.png")
 
 def replace_negatives_with_zero(lst):
     return [0 if x < 0 else x for x in lst]
@@ -424,7 +445,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import auc
 from matplotlib.gridspec import GridSpec
-def plotScater(d):
+import numpy as np
+
+def plotScater(d,outdir,avenonmod,nonmodsd):
 
     #psude
     psude = d["Y"]
@@ -448,12 +471,12 @@ def plotScater(d):
     ax_scatter.scatter(x1, y1, color="blue", label=chr(0x03A8)+"")
     ax_scatter.scatter(x2, y2, color="red", label="m7G")
     ax_scatter.scatter(x3, y3, color="green", label="s4U")
-    sns.kdeplot(x1, ax=ax_histx, color="blue", fill=True)
-    sns.kdeplot(x2, ax=ax_histx, color="red", fill=True)
-    sns.kdeplot(x3, ax=ax_histx, color="green", fill=True)
-    sns.kdeplot(y1, ax=ax_histy, color="blue", fill=True, vertical=True)
-    sns.kdeplot(y2, ax=ax_histy, color="red", fill=True, vertical=True)
-    sns.kdeplot(y3, ax=ax_histy, color="green", fill=True, vertical=True)
+    sns.kdeplot(x1, ax=ax_histx, color="blue", fill=False)
+    sns.kdeplot(x2, ax=ax_histx, color="red", fill=False)
+    sns.kdeplot(x3, ax=ax_histx, color="green", fill=False)
+    sns.kdeplot(y1, ax=ax_histy, color="blue", fill=False, vertical=True)
+    sns.kdeplot(y2, ax=ax_histy, color="red", fill=False, vertical=True)
+    sns.kdeplot(y3, ax=ax_histy, color="green", fill=False, vertical=True)
 
     ax_histx.set_xlim(ax_scatter.get_xlim())
     ax_histy.set_ylim(ax_scatter.get_ylim())
@@ -462,11 +485,15 @@ def plotScater(d):
     ax_scatter.legend()
     plt.setp(ax_histx.get_xticklabels(), visible=False)
     plt.setp(ax_histy.get_yticklabels(), visible=False)
-    plt.savefig("/mnt/share/ueda/minimapmapping/threemoddist.png")
+   
+
+    plt.savefig(outdir+"/threemoddist.png")
 
     plt.clf()
     x = []
     y = []
+    y_err = []
+    x_err = []
     labels=[]
     for key in d:
 
@@ -476,27 +503,47 @@ def plotScater(d):
         labels.append(key)
         ye, xe = zip(*lst)
         x.append(np.mean(xe))
+        sdx = np.std(xe, ddof=1)
+        x_err.append(sdx)
         y.append(np.mean(ye))
+        sdy = np.std(ye, ddof=1)
+        y_err.append(sdy)
 
-    plt.scatter(x, y)  # Uz}
+    x_range = [0, 9]
+    y_range = [0, 7]
+
+    # plt.scatter(x, y)  # Uz}
+    plt.errorbar(x, y, yerr=y_err, xerr=x_err, capsize=5, fmt='o', markersize=7, ecolor='lightgrey',
+                 markeredgecolor="blue", color='w')
+
+    plt.xlim(x_range)
+    plt.ylim(y_range)
+    plt.xticks(range(x_range[0]+1, x_range[1] + 1, 1))
+    plt.yticks(range(y_range[0], y_range[1] + 1, 1))
     zerotxt = ""
     for i in range(len(x)):
 
         if y[i] > 0:
             if labels[i] == "acp3U":
-                plt.text(x[i] + 0.05, y[i]+0.05, labels[i])
+                plt.text(x[i] + 0.09, y[i]+0.06, labels[i])
             elif  labels[i] == "Gm":
-                plt.text(x[i] + 0.05, y[i]+0.1, labels[i])
+                plt.text(x[i] + 0.09, y[i]+0.1, labels[i])
+            elif  labels[i] == "m7G":
+                plt.text(x[i] + 0.09, y[i]+0.08, labels[i])
+            elif  labels[i] == "gluQ":
+                plt.text(x[i] + 0.09, y[i]-0.15, labels[i])
             else:
-                plt.text(x[i]+0.05, y[i], labels[i])
+                plt.text(x[i]+0.09, y[i], labels[i])
         else:
             zerotxt = zerotxt +"," + labels[i]
 
-    plt.text(1.05, 0, zerotxt[1:])
+    plt.text(1.05, 0.1, zerotxt[1:])
     plt.xlabel("Base resolution")
     plt.ylabel("Misbasecall ratio (log2)")
-
-    plt.savefig("/mnt/share/ueda/minimapmapping/all.png")
+    print("ave",avenonmod)
+    plt.axhline(y=avenonmod+nonmodsd, color='pink', linestyle='--')
+    plt.axhline(y=avenonmod, color='r', linestyle='--')
+    plt.savefig(outdir+"/all.png", dpi=300)
     plt.clf()
 
     # plot bar
@@ -533,15 +580,75 @@ def plotScater(d):
 
     plt.xticks(rotation=90)
     plt.ylabel("Detected counts/Number of modified position")
-    plt.savefig("/mnt/share/ueda/minimapmapping/bar.png")
+    plt.savefig(outdir+"/bar.png", dpi=300)
 
     #ROC analysis
     all = []
 
+    #Boxplot
 
 
 
     # plt.legend()
 
+bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+bam1 = "/mnt/share/ueda/trna_data/bam/ivt_sorted.bam"
+ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
+# matrixref = "/mnt/share/ueda/trna_data/tRNAEcoli.csv"
+matrixref = "/mnt/share/ueda/trna_data/ecoliTrna_paper.csv"
+outdir = "/mnt/share/ueda/minimapmapping/ivt"
 
-compare(bam2,bam1,ref,matrixref,outdir)
+compare(bam2,bam1,ref,matrixref,outdir,"rcc_ivt")
+
+
+ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
+
+
+enzimes = ["trub","thii"]
+
+for ez in enzimes:
+
+    bam1 = "/mnt/share/ueda/TyCooNNPubTest/"+ez+"/sample_sorted.bam"
+    bam2 = "/mnt/share/ueda/TyCooNNPubTest/wt/sample_sorted.bam"
+    outdir = "/mnt/share/ueda/minimapmapping/"+ez
+    compare(bam2,bam1,ref,matrixref,outdir,ez)
+
+# enzimes = ["thii_wt","trmb_wt","trub_wt"]
+#
+# for ez in enzimes:
+#     # bam1 = "/mnt/share/ueda/TyCooNNPub/"+ez+"/sample_sorted.bam"
+#     bam2 = "/mnt/share/ueda/TyCooNNPub/wt/sample_sorted.bam"
+#     bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+#     outdir = "/mnt/share/ueda/minimapmapping/"+ez
+#     compare(bam2,bam1,ref,matrixref,outdir,ez)
+
+
+bam1 = "/mnt/share/ueda/TyCooNNPubTest/thii/sample_sorted.bam"
+bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+outdir = "/mnt/share/ueda/minimapmapping/thii_rcc"
+compare(bam2,bam1,ref,matrixref,outdir,ez)
+
+
+# ez ="thii_trub"
+# outdir = "/mnt/share/ueda/minimapmapping/"+ez
+# bam1 = "/mnt/share/ueda/TyCooNNPub/thii/sample_sorted.bam"
+# bam2 = "/mnt/share/ueda/TyCooNNPub/trub/sample_sorted.bam"
+# compare(bam2,bam1,ref,matrixref,outdir,ez)
+#
+# ez ="trub_thii"
+# outdir = "/mnt/share/ueda/minimapmapping/"+ez
+# bam1 = "/mnt/share/ueda/TyCooNNPub/thii/sample_sorted.bam"
+# bam2 = "/mnt/share/ueda/TyCooNNPub/trub/sample_sorted.bam"
+# compare(bam1,bam2,ref,matrixref,outdir,ez)
+
+# ez ="trmB_thii"
+# outdir = "/mnt/share/ueda/minimapmapping/"+ez
+# bam1 = "/mnt/share/ueda/TyCooNNPub/thii/sample_sorted.bam"
+# bam2 = "/mnt/share/ueda/TyCooNNPub/trmb/sample_sorted.bam"
+# compare(bam1,bam2,ref,matrixref,outdir,ez)
+
+# ez ="log_sta"
+# outdir = "/mnt/share/ueda/minimapmapping/"+ez
+# bam1 = "/mnt/share/ueda/TyCooNNPub/log/sample_sorted.bam"
+# bam2 = "/mnt/share/ueda/TyCooNNPub/sta1/sample_sorted.bam"
+# compare(bam2,bam1,ref,matrixref,outdir,ez)

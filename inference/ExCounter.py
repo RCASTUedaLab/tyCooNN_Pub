@@ -36,13 +36,14 @@ class Counter():
 
 class MiniCounter():
 
-    def __init__(self,filterflg,trimSuccess):
+    def __init__(self,filterflg,trimSuccess,fastq=None):
 
         self.filterFlg  = filterflg
         self.trimSuccess = trimSuccess
         self.tRNA = None
         self.tRNAIdx = 0
         self.maxval = 0.0
+        self.fastq = fastq
 
     def addInference(self, tRNA,tRNAIdx,maxval):
 
