@@ -1,4 +1,7 @@
 import click
+
+import sys
+sys.path.append("../")
 import preprocess.MakeTrainingPq as mkpq
 
 import inference.Inference as inference
@@ -15,18 +18,20 @@ def main():
 @click.option('-i', '--indir')
 @click.option('-o', '--outpq')
 @click.option('-c', '--takeCount',default=12000)
+@click.option('-s','--outstat')
 @click.option('-p', '--paramPath',default='settings.yaml')
-def makeParquetEach(paramPath,tRNALabel,indir,outpq,takeCount):
+def makeParquetEach(paramPath,tRNALabel,indir,outpq,outstat,takeCount):
 
-    mkpq.genaratePqForTraining(paramPath,tRNALabel,indir,outpq,takeCount)
+    mkpq.genaratePqForTraining(paramPath,tRNALabel,indir,outpq,outstat,takeCount)
 
 
 @cmd.command()
-@click.option('-ls', '--listOfIOPath')
-@click.option('-p', '--paramPath',default='settings.yaml')
-def makeParquetAll(listOfIOPath,paramPath):
+@click.option('-i','--listOfIOPath',"listOfIOPath")
+@click.option('-c', '--takeCount',"takeCount",default=12000)
+@click.option('-p', '--paramPath',"paramPath",default='settings.yaml')
+def makeparquetall(listOfIOPath,takeCount,paramPath):
 
-    mkpq.generatePqForTrainingAll(paramPath,listOfIOPath)
+    mkpq.generatePqForTrainingAll(paramPath,listOfIOPath,takeCount)
 
 
 @cmd.command()
