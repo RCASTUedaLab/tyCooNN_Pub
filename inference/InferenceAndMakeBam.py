@@ -12,7 +12,11 @@ from inference.ExCounter import MiniCounter
 import preprocess.TrimAndNormalize as tn
 import tensorflow as tf
 import pathlib
-
+import pysam
+import mappy as mp
+import os.path
+import random
+from Bio import SeqIO
 
 def getTRNAlist(trnapath):
     trnas = []
@@ -87,8 +91,6 @@ def splitBytRNA(alldata,threshold):
     return ret_dict
 
 
-import pysam
-import mappy as mp
 maxcnt = 1000
 def maptoref(bam,ref,refdir,alldata,threshold):
 
@@ -160,8 +162,6 @@ def ensure_directory(directory_path):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
 
-import os.path
-import random
 def evaluate(paramPath,indirs,outdir,outpath,ref, refdir,threshold=0.75):
 
 
@@ -245,18 +245,12 @@ def evaluate(paramPath,indirs,outdir,outpath,ref, refdir,threshold=0.75):
     bamfile = outpath + "/sample.bam"
     maptoref(bamfile,ref,refdir,alldata,threshold)
 
-
-
-from Bio import SeqIO
-
-
 def fastaToDict(fasta):
     seqdict = {}
     for record in SeqIO.parse(fasta, 'fasta'):
         seqdict[record.id] = record.seq.replace('U', 'T')
 
     return seqdict
-
 
 # do it file by file
 def evaluateEach(param, f5file, outpath, model, trnas, cnt_file, threshold):
@@ -369,7 +363,6 @@ def getFastq(read_id, seqdict, tRNA, seqlen):
     # print(fq)
     return fq
 
-
 import logging
 import os
 import shutil
@@ -378,11 +371,9 @@ from ont_fast5_api.multi_fast5 import MultiFast5File
 from ont_fast5_api.compression_settings import GZIP
 import ont_fast5_api.conversion_tools.multi_to_single_fast5 as multi_to_single_fast5
 import h5py
+import time
 import sys
 
 if sys.version_info[0] > 2:
     unicode = str
-
-import time
-
 

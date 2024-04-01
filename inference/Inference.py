@@ -12,6 +12,20 @@ from inference.ExCounter import MiniCounter
 import preprocess.TrimAndNormalize as tn
 import tensorflow as tf
 import pathlib
+from Bio import SeqIO
+import logging
+import shutil
+from ont_fast5_api.fast5_file import Fast5File, Fast5FileTypeError
+from ont_fast5_api.multi_fast5 import MultiFast5File
+from ont_fast5_api.compression_settings import GZIP
+import ont_fast5_api.conversion_tools.multi_to_single_fast5 as multi_to_single_fast5
+import h5py
+import sys
+
+if sys.version_info[0] > 2:
+    unicode = str
+
+import time
 
 def getTRNAlist(trnapath):
 
@@ -149,7 +163,6 @@ def evaluate(opts):
     df = pd.DataFrame(data, columns=filterlabel)
     df.to_csv(filtercsv)
 
-from Bio import SeqIO
 def fastaToDict(fasta):
 
     seqdict = {}
@@ -270,20 +283,6 @@ def getFastq(read_id,seqdict,tRNA,seqlen):
     #print(fq)
     return fq
 
-import logging
-import os
-import shutil
-from ont_fast5_api.fast5_file import Fast5File, Fast5FileTypeError
-from ont_fast5_api.multi_fast5 import MultiFast5File
-from ont_fast5_api.compression_settings import GZIP
-import ont_fast5_api.conversion_tools.multi_to_single_fast5 as multi_to_single_fast5
-import h5py
-import sys
-if sys.version_info[0] > 2:
-    unicode = str
-
-
-import time
 def copyWithAdddata(f5file,fast5out,datadict,seqdict,single5out,singlefast5dir,cnt,fq):
 
     #copy first
