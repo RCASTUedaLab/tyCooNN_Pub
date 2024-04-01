@@ -12,8 +12,9 @@ import csv
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
 import utils.tyUtils as ut
-import training.DataArgumentation as da
+import training.DataAugmentation as da
 from tensorflow.keras.utils import Sequence
+import matplotlib.pyplot as plot
 import gc
 
 def shuffle_samples(X, y):
@@ -38,8 +39,7 @@ def formatY(Y,num_classes):
    Y = np.reshape(Y, (-1, 1,))
    return keras.utils.to_categorical(Y, num_classes)
 
-import matplotlib.pyplot as plot
-class ArgumentlGenerator(object):
+class AugmentationGenerator(object):
 
     def __init__(self,x, y, batch_size,signal_size, class_count, augmentation_factor,epoch,ncore=8):
 

@@ -149,7 +149,7 @@ def getHighAGPeak(sigfrom3p):
 
 def filterFlg(read,param,trimSuccess):
 
-    if  read.mean_qscore < param.qval_min:
+    if read.mean_qscore < param.qval_min:
         return 1
 
     siglen = len(read.signal)
@@ -218,7 +218,6 @@ def trimAdaptorEach(read,param):
     read.filterFlg = filterFlg(read,param,read.trimSuccess)
 
     return read
-
 
 #trim
 def trimAdaptor(reads,param):

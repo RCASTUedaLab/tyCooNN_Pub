@@ -12,7 +12,7 @@ import csv
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
 import utils.tyUtils as ut
-from training.SignalGenerator import ArgumentlGenerator
+from training.SignalGenerator import AugmentationGenerator
 from training.SignalGenerator import BatchIterator
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -62,7 +62,6 @@ def formatX(X,wlen):
 def formatY(Y,num_classes):
    Y = np.reshape(Y, (-1, 1,))
    return keras.utils.to_categorical(Y, num_classes)
-
 
 def train(dirpath,outdir,epoch = 50,data_argument = 0):
 
@@ -149,7 +148,6 @@ def train(dirpath,outdir,epoch = 50,data_argument = 0):
                                       mode='max',
                                       period=1)
 
-
     test_x = formatX(X_test, wlen)
     test_y = formatY(Y_test, num_classes)
     if data_argument == 0:
@@ -163,7 +161,7 @@ def train(dirpath,outdir,epoch = 50,data_argument = 0):
                   shuffle=True, validation_data=(test_x, test_y),callbacks=[modelCheckpoint])
     else:
 
-        signalgen = ArgumentlGenerator(X_train, Y_train, batch_size,wlen,num_classes,data_argument,epoch)
+        signalgen = AugmentationGenerator(X_train, Y_train, batch_size,wlen,num_classes,data_argument,epoch)
         batchgen = BatchIterator(X_test, Y_test, batch_size,wlen,num_classes,epoch)
         history = model.fit_generator(signalgen.flow(),steps_per_epoch=signalgen.numbatch(),
                                       validation_data=batchgen.flow(),validation_steps=batchgen.numbatch(),epochs=epoch,callbacks=[modelCheckpoint])
