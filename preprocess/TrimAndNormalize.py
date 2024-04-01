@@ -1,24 +1,13 @@
 from multiprocessing.pool import Pool
 
 import statistics
-import glob
-import h5py
 import numpy as np
-import pyarrow as pa
-from pyarrow import parquet as pq
-import pandas as pd
-import os
-import pickle
 from scipy import ndimage as ndi
-import matplotlib.pyplot as plt
 import copy
 from hmmlearn import hmm
 from Bio import pairwise2
-from numba import jit,u1,i8,f8
-import ruptures as rpt
-import utils.tyUtils as utils
+from numba import jit
 from functools import partial
-import utils.tyUtils as ut
 import random
 
 def _down_sampling(a):
@@ -34,6 +23,7 @@ def down_sampling(a, deg):
         a = _down_sampling(a)
 
     return a
+
 
 def getStartIndexes(signal, downSampleDegree=4, deltaThreshold=20, lenThreshold=500, minSiglen=2000,maxSiglen=10000):
 
@@ -54,21 +44,6 @@ def getStartIndexes(signal, downSampleDegree=4, deltaThreshold=20, lenThreshold=
             data.append(v)
         last = v
     return data
-
-def _down_sampling(a):
-    if (len(a) % 2 == 1): a = np.append(a, 0)
-    c = copy.copy(a)
-    c = np.array(c)
-    ret = c.reshape(-1, 2).mean(axis=1)
-
-    return ret
-
-def down_sampling(a, deg):
-    for i in range(deg):
-        a = _down_sampling(a)
-
-    return a
-
 
 def applyHMM(signal,minIdx=500):
 
