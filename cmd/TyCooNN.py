@@ -13,7 +13,7 @@ def cmd():
 def main():
     cmd()
 
-@cmd.command()
+@cmd.command(name='makeParquetEach')
 @click.option('-l', '--tRNAlabel')
 @click.option('-i', '--indir')
 @click.option('-o', '--outpq')
@@ -25,7 +25,7 @@ def makeParquetEach(paramPath,tRNALabel,indir,outpq,outstat,takeCount):
     mkpq.genaratePqForTraining(paramPath,tRNALabel,indir,outpq,outstat,takeCount)
 
 
-@cmd.command()
+@cmd.command(name='makeParquetAll')
 @click.option('-i','--listOfIOPath',"listOfIOPath")
 @click.option('-c', '--takeCount',"takeCount",default=12000)
 @click.option('-p', '--paramPath',"paramPath",default='settings.yaml')
@@ -34,7 +34,7 @@ def makeparquetall(listOfIOPath,takeCount,paramPath):
     mkpq.generatePqForTrainingAll(paramPath,listOfIOPath,takeCount)
 
 
-@cmd.command()
+@cmd.command(name='train')
 @click.option('-i', '--input')
 @click.option('-o', '--outdir')
 @click.option('-e', '--epoch',default=50)
@@ -44,7 +44,7 @@ def train(input, outdir,  epoch,data_argument):
     traning.train(input, outdir, epoch,data_argument)
 
 
-@cmd.command()
+@cmd.command(name='evaluate')
 @click.option('-i', '--input')
 @click.option('-o', '--outdir')
 @click.option('-c', '--csvout')
@@ -53,7 +53,7 @@ def evaluateTest(input, outdir, csvout):
     evaluate.evaluate(input, outdir, csvout)
 
 
-@cmd.command()
+@cmd.command(name='analysis')
 @click.option('-p', '--paramPath',default='settings.yaml')
 @click.option('-i', '--indir')
 @click.option('-c', '--configdir')
