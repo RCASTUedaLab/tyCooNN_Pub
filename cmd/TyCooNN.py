@@ -3,8 +3,8 @@ import click
 import sys
 sys.path.append("../")
 import preprocess.MakeTrainingPq as mkpq
-
 import inference.Inference as inference
+import training.Training as training
 
 @click.group()
 def cmd():
@@ -24,7 +24,6 @@ def makeParquetEach(paramPath,tRNALabel,indir,outpq,outstat,takeCount):
 
     mkpq.genaratePqForTraining(paramPath,tRNALabel,indir,outpq,outstat,takeCount)
 
-
 @cmd.command(name='makeParquetAll')
 @click.option('-i','--listOfIOPath',"listOfIOPath")
 @click.option('-c', '--takeCount',"takeCount",default=12000)
@@ -33,16 +32,14 @@ def makeparquetall(listOfIOPath,takeCount,paramPath):
 
     mkpq.generatePqForTrainingAll(paramPath,listOfIOPath,takeCount)
 
-
 @cmd.command(name='train')
 @click.option('-i', '--input')
 @click.option('-o', '--outdir')
-@click.option('-e', '--epoch',default=50)
-@click.option('-a', '--data_argument',default=50)
-def train(input, outdir,  epoch,data_argument):
+@click.option('-e', '--epoch',default=100)
+@click.option('-a', '--data_augment',default=0)
+def train(input, outdir,  epoch,data_augment):
 
-    traning.train(input, outdir, epoch,data_argument)
-
+    training.train(input, outdir, epoch,data_augment)
 
 @cmd.command(name='evaluate')
 @click.option('-i', '--input')
@@ -50,8 +47,7 @@ def train(input, outdir,  epoch,data_argument):
 @click.option('-c', '--csvout')
 def evaluateTest(input, outdir, csvout):
 
-    evaluate.evaluate(input, outdir, csvout)
-
+    inference.evaluate(input, outdir, csvout)
 
 @cmd.command(name='analysis')
 @click.option('-p', '--paramPath',default='settings.yaml')
@@ -63,7 +59,6 @@ def evaluateTest(input, outdir, csvout):
 def analysis(paramPath,indirs,configdir,outpath,fasta,fasta5out):
 
     inference.evaluate(paramPath,indirs,configdir,outpath,fasta,fasta5out)
-
 
 if __name__ == '__main__':
     main()
