@@ -1,13 +1,12 @@
 import glob
-from typing import Dict
-from tyRead import Read
-from tyParam import tyParam
+from utils.tyRead import Read
+from utils.tyParam import tyParam
 import multiprocessing
 from multiprocessing import Pool
-from functools import partial
 from ont_fast5_api.fast5_interface import get_fast5_file
-import yaml,sys,itertools,time
+import yaml, sys, itertools
 import matplotlib.pyplot as plt
+import csv
 
 def get_parameter(yaml_path:str):
     print('loading parameter from {}\n'.format(yaml_path))
@@ -59,7 +58,7 @@ def get_fast5_reads_dirs(directories:list,MAX_CORE:int,readmax = -1):
     return the list of reads from fast5 files in the directory
 
     Args:
-        directory (str): path to the directory containing fast5 files
+        directories (str): path to the directory containing fast5 files
         MAX_CORE (int): maximum number of cores
 
     Returns:
@@ -156,45 +155,17 @@ def get_fast5_reads_from_file(fast5_filepath:str):
             read_info = read.handle[read.raw_dataset_group_name].attrs
             duration = read_info['duration']
 
-            # Search for valid analysis dataset
-            analyses = read.list_analyses()
-            basecall_run = None
-            mapinfo_run = None
-            for analysis,bpath in analyses:
-                trace = read.get_analysis_dataset(bpath,"BaseCalled_template/Trace")
-                if trace is not None: basecall_run = bpath
-                if 'filterflg' in read.get_analysis_attributes(bpath): mapinfo_run = bpath
-            if basecall_run is None:
-                basecall_run = read.get_latest_analysis("Basecall_1D")
-            #basecall_run = read.get_latest_analysis("Basecall_1D")
+            # Search for latest analysis dataset
+            basecall_run = read.get_latest_analysis("Basecall_1D")
 
             fastq = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Fastq")
             trace = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Trace")
             move = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Move")
 
-            if mapinfo_run is None:
-                filterflg = -1
-                filterpass = False
-                trimSuccess = False
-                tRNA_infer = None
-                tRNAIndex = -1
-                softmax_prob = 0.0
-                map_attrs = None
-            else:
-                attrs = read.get_analysis_attributes(mapinfo_run)
-                filterflg = attrs['filterflg']
-                filterpass = attrs['filterpass']
-                trimSuccess = attrs['trimSuccess']
-                tRNA_infer = attrs['tRNA']
-                tRNAIndex = attrs['tRNAIndex']
-                softmax_prob = attrs['value']
-                map_attrs = {'filterflg': filterflg, 'filterpass': filterpass, 'trimSuccess': trimSuccess,
-                             'tRNA_infer': tRNA_infer, 'tRNAIndex': tRNAIndex, 'softmax_prob': softmax_prob}
-
             #read_id, signal, tracelen, fastq
             if len(trace) >0:
                 #read_id, signal, trace, move, fastq, duration):
-                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration,map_attrs=map_attrs)
+                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration)
                 reads.append(read)
 
     return reads
