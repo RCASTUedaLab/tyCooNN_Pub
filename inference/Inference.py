@@ -1,31 +1,23 @@
-import pandas as pd
-from tensorflow import keras
-import nnmodels.CNNWavenet as cnnwavenet
-import multiprocessing
-import csv
-import numpy as np
-import utils.tyUtils as ut
 import os
-from ont_fast5_api.fast5_interface import get_fast5_file
+import os.path
+import h5py
+import sys
+import pathlib
+import shutil
+import glob
+from Bio import SeqIO
+import numpy as np
+import pandas as pd
+from pyarrow import parquet as pq
+from ont_fast5_api.multi_fast5 import MultiFast5File
+import ont_fast5_api.conversion_tools.multi_to_single_fast5 as multi_to_single_fast5
+import utils.tyUtils as ut
+import nnmodels.CNNWavenet as cnnwavenet
 from inference.ExCounter import Counter
 from inference.ExCounter import MiniCounter
 import preprocess.TrimAndNormalize as tn
-import tensorflow as tf
-import pathlib
-from Bio import SeqIO
-import logging
-import shutil
-from ont_fast5_api.fast5_file import Fast5File, Fast5FileTypeError
-from ont_fast5_api.multi_fast5 import MultiFast5File
-from ont_fast5_api.compression_settings import GZIP
-import ont_fast5_api.conversion_tools.multi_to_single_fast5 as multi_to_single_fast5
-import h5py
-import sys
-
 if sys.version_info[0] > 2:
     unicode = str
-
-import time
 
 def getTRNAlist(trnapath):
 
@@ -39,98 +31,28 @@ def getTRNAlist(trnapath):
                 trnas.append(trna)
     return trnas
 
-import os.path
-#def evaluate(paramPath,indirs,outdir,outpath,fasta,fasta5out,threshold=0.75,runmode='production'):
+def infer(input, modeldir, outpath, ref, fast5fmt, threshold, parampath):
 
-def evaluate(opts):
-
-    paramPath = opts['param_loc']
-    indirs    = opts['inp_loc']
-    outdir    = opts['model_loc']
-    outpath   = opts['out_loc']
-    fasta     = opts['fasta_loc']
-    if 'writeSingle5' in opts:
-        writeSingle5 = opts['writeSingle5']
-    else:
-        writeSingle5 = False
-    if writeSingle5: 
-        fasta5out = "S"
-    else:
-        fasta5out = "M"
-    if 'threshold' in opts:
-        threshold=opts['threshold']
-    else:
-        threshold=0.75
-    if 'runmode' in opts:
-        runmode=opts['runmode']
+    print("Softmax post-filter threshold: ",threshold)
     
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    use_mult_gpu = False
-    use_gpu = False
-    if 'gpu' in opts:
-        gpu_select = str(opts['gpu'])
-        print("Using %s" % gpu_select)
-        os.environ["CUDA_VISIBLE_DEVICES"] = gpu_select
-        if gpu_select == '':
-            use_gpu = False
-        else:
-            use_gpu = True
-            num_gpu = len(gpu_select.split(','))
-            if num_gpu > 1:
-                use_mult_gpu = True
-    if 'gpu_memory_limit' in opts:
-        gpu_memory_limit = 1024 * opts['gpu_memory_limit']
-        gpu_logical_set = True
-        
-    else:
-        gpu_logical_set = False
-    
-    # Setting computing device
-    if use_gpu:
-        if use_mult_gpu:
-            gpus = tf.config.list_physical_devices('GPU')
-            if gpu_logical_set:
-                for gpu in gpus:
-                    tf.config.set_logical_device_configuration(gpu,[tf.config.LogicalDeviceConfiguration(memory_limit=gpu_memory_limit)])
-                gpus = tf.config.list_logical_devices('GPU')
-            else:
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-        else:
-            if gpu_logical_set:
-                gpus = tf.config.list_physical_devices('GPU')
-                print("check gpu list: ",gpus)
-                if isinstance(gpus,list):
-                    tf.config.set_logical_device_configuration(gpus[0],[tf.config.LogicalDeviceConfiguration(memory_limit=gpu_memory_limit)])
-                else:
-                    tf.config.set_logical_device_configuration(gpus,[tf.config.LogicalDeviceConfiguration(memory_limit=gpu_memory_limit)])
+    modelweight = modeldir + "learent_arg_weight.h5"
+    if not os.path.isfile(modelweight):
+        print("No model with augmented training: fall back to learent_weight.h5")
+        modelweight = modeldir + "/learent_weight.h5"
 
-    outweight = outdir + "learent_arg_weight.h5"
-    if not os.path.isfile(outweight):
-        outweight = outdir + "/learent_arg_weight.h5"
-
-    param = ut.get_parameter(paramPath)
-    indirs = indirs.split(",")
+    param = ut.get_parameter(parampath)
+    input = input.split(",")
     f5list = []
-    for dir in indirs:
+    for dir in input:
         f5list.extend(ut.get_fast5_files_in_dir(dir,param.ncore))
-    if runmode == 'debug':
-        f5list = f5list[:1]
-        print(f5list)
+    print("Number of fast5 files: %d" % len(f5list))
 
-    trnapath = outdir + '/tRNAindex.csv'
+    trnapath = modeldir + '/tRNAindex.csv'
     trnas = getTRNAlist(trnapath)
-    print("trna",trnas)
+    print("tRNAs:\n",np.array(trnas))
 
-    if use_mult_gpu and gpu_logical_set:
-        strategy = tf.distribute.MirroredStrategy(gpus)
-        with strategy.scope():
-            model = cnnwavenet.build_network(shape=(None, param.trimlen, 1), num_classes=len(trnas))
-            model.load_weights(outweight)
-    else:
-        model = cnnwavenet.build_network(shape=(None, param.trimlen, 1), num_classes=len(trnas))
-        model.load_weights(outweight)
-
+    model = cnnwavenet.build_network(shape=(None, param.trimlen, 1), num_classes=len(trnas))
+    model.load_weights(modelweight)
 
     totalcounter = Counter(trnas,threshold=threshold)
     cnt = 0
@@ -139,7 +61,7 @@ def evaluate(opts):
         os.makedirs(outpath)
     fq = open(fqpath, mode='w')
     for f5file in f5list:
-        counter = evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt,fq,threshold)
+        counter = evaluateEach(param,f5file,outpath,model,trnas,ref,fast5fmt,cnt,fq,threshold)
         totalcounter.sumup(counter)
         cnt +=1
         print("done..{}/{}".format(cnt,len(f5list)))
@@ -154,7 +76,7 @@ def evaluate(opts):
 
     df = pd.DataFrame(data, columns=trnas)
     df.to_csv(csvout)
-    #
+    
     filtercsv = outpath + "/filer.csv"
     data = []
     data.append(totalcounter.filterFlgCnt)
@@ -171,7 +93,7 @@ def fastaToDict(fasta):
     return seqdict
 
 # do it file by file
-def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,threshold):
+def evaluateEach(param,f5file,outpath,model,trnas,ref,fast5fmt,cnt_file,fq,threshold):
 
     print(f5file)
     reads = ut.get_fast5_reads_from_file(f5file)
@@ -200,12 +122,13 @@ def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,th
         fileflag.write("%4d %2d %12s %12d\n" % (cnt_file,flg,flg_lab,flg_cnt))
     fileflag.close()
     #print(flagCount)
+
     format_reads = tn.formatSignal(trimmed_filterFlgged_read, param)
     datalabel = []
     data = []
     datadict = {}
 
-    seqdict = fastaToDict(fasta)
+    seqdict = fastaToDict(ref)
 
     fast5dir = outpath +"/fast5"
     if not os.path.exists(fast5dir):
@@ -214,14 +137,12 @@ def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,th
 
     for read in format_reads:
 
-        #print(read.read_id)
         if (read.filterFlg == 0):
             datadict[read.read_id] = MiniCounter(read.filterFlg,read.trimSuccess)
             datalabel.append(read.read_id)
             data.append(read.formatSignal)
 
     print("Number of trimmed reads: ",len(datalabel))
-
     data = np.reshape(data, (-1, param.trimlen, 1))
     prediction = model.predict(data, batch_size=None, verbose=0, steps=None)
     print(data.shape,prediction.shape)
@@ -229,7 +150,6 @@ def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,th
     cnt = -1
     for row in prediction:
 
-        # incriment
         cnt += 1
         rdata = np.array(row)
         maxidxs = np.where(rdata == rdata.max())
@@ -241,8 +161,7 @@ def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,th
             readid = datalabel[cnt]
             minicnt =  datadict[readid]
             minicnt.addInference(maxtrna,maxidx,maxv)
-            #print(cnt,readid,maxtrna)
-    #
+
     counter = Counter(trnas,threshold=threshold)
     for key in datadict:
         minicnt = datadict[key]
@@ -250,11 +169,7 @@ def evaluateEach(param,f5file,outpath,model,trnas,fasta,fasta5out,cnt_file,fq,th
 
     singlefast5dir = outpath + "/single_fast5"
     #output fast5
-    copyWithAdddata(f5file,fast5out,datadict,seqdict,fasta5out,singlefast5dir,cnt_file,fq)
-
-    #if fasta5out != "None":
-    #    if "S" == fasta5out:
-            #copyWithAdddata(f5file,fast5out,datadict,seqdict,single5out,singlefast5dir,cnt_file,fq)
+    copyWithAdddata(f5file,fast5out,datadict,seqdict,fast5fmt,singlefast5dir,cnt_file,fq)
 
     return counter
 
@@ -276,13 +191,11 @@ def getFastq(read_id,seqdict,tRNA,seqlen):
     start = (len(seq)-seqlen)-hang
     if start < 0:
         start = 0
-    #seq = seq[start:len(seq)]
     qual = getDummyQual(len(seq))
     fq = str(read_id)+ " \n"  + str(seq) +"\n" +"+" + "\n" + str(qual)
-    #print(fq)
     return fq
 
-def copyWithAdddata(f5file,fast5out,datadict,seqdict,single5out,singlefast5dir,cnt,fq):
+def copyWithAdddata(f5file,fast5out,datadict,seqdict,fast5fmt,singlefast5dir,cnt,fq):
 
     #copy first
     shutil.copyfile(f5file, fast5out)
@@ -298,10 +211,7 @@ def copyWithAdddata(f5file,fast5out,datadict,seqdict,single5out,singlefast5dir,c
 
             basecall_run = read.get_latest_analysis("Basecall_1D")
             fastq = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Fastq")
-            # print(fastq)
             seqlen = len(fastq.split("\n")[1])
-
-            #print(read.read_id, (read.read_id in datadict), rcnt)
 
             if read.read_id in datadict:
 
@@ -334,6 +244,173 @@ def copyWithAdddata(f5file,fast5out,datadict,seqdict,single5out,singlefast5dir,c
 
     multi_f5.close()
 
-    if single5out == "S":
+    if fast5fmt == "S":
         print('print single5 output to',singlefast5dir,str(cnt+1))
         multi_to_single_fast5.convert_multi_to_single(fast5out, singlefast5dir,str(cnt+1))
+
+def evaluate(input, modeldir, outcsv, outcsv2, threshold):
+
+    print(input)
+    fs = glob.glob(input + "/*.pq*")
+    print(fs)
+    trnas = []
+
+    X_test = []
+    Y_test = []
+    wlen = 0
+    for f in fs:
+
+        print(f)
+        pqt = pq.read_table(f,
+                            columns=['read_id', 'trna', 'trimsignal'])
+
+        dfp = pqt.to_pandas()
+        cnt = 0
+        wlen = 0
+        for idx, row in dfp.iterrows():
+            trna = row[1]
+            signal = row[2]
+            if wlen == 0:
+                wlen = len(signal)
+
+            if not cnt % 12 >= 2:
+                X_test.append(signal)
+                Y_test.append(trna)
+
+            cnt += 1
+
+        trna = dfp["trna"].unique()
+        trnas.append(trna)
+
+    trnas = sorted(trnas)
+    # name to index
+    Y_test = list(map(lambda trna: trnas.index(trna), Y_test))
+    num_classes = np.unique(Y_test).size
+
+    test_x = np.reshape(X_test, (-1, wlen, 1))
+
+    modelweight = modeldir + "learent_arg_weight.h5"
+    if not os.path.isfile(modelweight):
+        print("No model with augmented training: fall back to learent_weight.h5")
+        modelweight = modeldir + "/learent_weight.h5"
+
+    model = cnnwavenet.build_network(shape=(None, wlen, 1), num_classes=len(trnas))
+    model.load_weights(modelweight)
+
+    prediction = model.predict(test_x, batch_size=None, verbose=0, steps=None)
+
+    retdict = {}
+    cnt = -1
+    prob = []
+    for row in prediction:
+
+        cnt += 1
+        rdata = np.array(row)
+        maxidxs = np.where(rdata == rdata.max())
+        prob.append(rdata.max())
+        ans = Y_test[cnt]
+        if len(maxidxs) > 1:
+            continue  # multiple hit
+        maxidx = maxidxs[0]
+
+        if ans in retdict:
+            ridxs = retdict[ans]
+            ridxs[maxidx] = ridxs[maxidx] + 1
+        else:
+            ridxs = np.zeros(num_classes)
+            retdict[ans] = ridxs
+            ridxs[maxidx] = ridxs[maxidx] + 1
+
+    print("average prob.: ", np.mean(prob))
+    print("std: ", np.std(prob))
+
+    data = [list(retdict[i]) for i in range(num_classes)]
+
+    df = pd.DataFrame(data, columns=trnas)
+    df.to_csv(outcsv, index=False)
+
+    probthres = threshold
+    retdict = {}
+    cnt = -1
+    prob = []
+    for row in prediction:
+
+        cnt += 1
+        rdata = np.array(row)
+        if rdata.max() < probthres:
+            continue
+        maxidxs = np.where(rdata == rdata.max())
+        prob.append(rdata.max())
+        ans = Y_test[cnt]
+        if len(maxidxs) > 1:
+            continue  # multiple hit
+        maxidx = maxidxs[0]
+
+        if ans in retdict:
+            ridxs = retdict[ans]
+            ridxs[maxidx] = ridxs[maxidx] + 1
+        else:
+            ridxs = np.zeros(num_classes)
+            retdict[ans] = ridxs
+            ridxs[maxidx] = ridxs[maxidx] + 1
+
+    print("trimmed average prob.: ", np.mean(prob))
+    print("trimmed std: ", np.std(prob))
+
+    data = [list(retdict[i]) for i in range(num_classes)]
+    df = pd.DataFrame(data, columns=trnas)
+    df.to_csv(outcsv2, index=False)
+
+def evaluatepq(input, modeldir, outcsv, threshold):
+
+    modelweight = modeldir + "learent_arg_weight.h5"
+    if not os.path.isfile(modelweight):
+        modelweight = modeldir + "/learent_weight.h5"
+
+    data = pd.read_parquet(input)
+    signal_data = data['trimsignal'].to_list()
+
+    wlen = len(signal_data[0])
+
+    trnapath = modeldir + '/tRNAindex.csv'
+    trnas = getTRNAlist(trnapath)
+    print("trna", np.array(trnas))
+
+    model = cnnwavenet.build_network(shape=(None, wlen, 1), num_classes=len(trnas))
+    model.load_weights(modelweight)
+
+    data = np.reshape(signal_data, (-1, wlen, 1))
+    prediction = model.predict(data, batch_size=None, verbose=0, steps=None)
+    print(data.shape, prediction.shape)
+
+    label = {}
+    label_threshold = {}
+    for t in trnas:
+        label[t] = 0
+        label_threshold[t] = 0
+
+    for row in prediction:
+
+        rdata = np.array(row)
+        maxidxs = np.where(rdata == rdata.max())
+        # unique hit with more than zero Intensity
+        if len(maxidxs) == 1 and rdata.max() >= 0:
+            maxidx = int(maxidxs[0])
+            maxtrna = trnas[maxidx]
+            maxv = rdata.max()
+            label[maxtrna] += 1
+            if maxv >= threshold:
+                label_threshold[maxtrna] += 1
+
+    with open(outcsv, "w") as fw:
+        header_string = "," + ",".join(sorted(trnas))
+        fw.write("%s\n" % header_string)
+        values = [];
+        values_cut = []
+        for k in sorted(label.keys()):
+            values.append(str(label[k]))
+            values_cut.append(str(label_threshold[k]))
+        v1 = "," + ",".join(values)
+        v2 = "," + ",".join(values_cut)
+        fw.write("%s\n%s\n" % (v2, v1))
+

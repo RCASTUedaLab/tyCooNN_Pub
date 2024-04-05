@@ -19,11 +19,6 @@ import gc
 
 def shuffle_samples(X, y):
 
-    # zipped = list(zip(X, y))
-    # np.random.shuffle(zipped)
-    # X_result, y_result = zip(*zipped)
-    # return np.asarray(X_result), np.asarray(y_result)
-
     data_size = len(X)
     shuffle_indices = np.random.permutation(np.arange(data_size))
     X = np.array(X)
@@ -75,48 +70,8 @@ class AugmentationGenerator(object):
                 batch_X = augmented_signals[start_index: end_index]
                 batch_Y = augmented_labels[start_index: end_index]
 
-                # plot.plot(batch_X[0])
-                # plot.title(str(batch_Y[0]))
-                # plot.savefig("/share/trna/tyCooNNTest/testfig/epoch"+str(n)+"_"+str(batch_num)+".png")
-                # plot.clf()
-
                 batch_X = formatX(batch_X,self.signal_size)
                 batch_Y = formatY(batch_Y,self.class_count)
-                yield (batch_X,batch_Y)
-
-class TrainDataGenerator(object):
-
-    def __init__(self,x, y, batch_size,signal_size, class_count,epoch):
-
-        self.x = np.array(x,np.float32)
-        self.y = y
-        self.batch_size = batch_size
-        self.signal_size = signal_size
-        self.class_count = class_count
-        self.epoch = epoch
-        print("Number of training data ",len(self.x))
-        print("Number of training batches ",self.numbatch())
-
-    def numbatch(self):
-
-        #return  int((len(self.x) - 1) / self.batch_size) + 1
-        return  int(np.ceil(len(self.x)/self.batch_size))
-
-    def flow(self):
-
-        for n in range(self.epoch+1):
-            X,Y = shuffle_samples(self.x,self.y)
-            num_batches_per_epoch = self.numbatch()
-            print("Training batches per epoch:",num_batches_per_epoch)
-            for batch_num in range(num_batches_per_epoch):
-                start_index = batch_num * self.batch_size
-                end_index = min((batch_num + 1) * self.batch_size, len(self.x))
-                batch_X = X[start_index: end_index]
-                batch_Y = Y[start_index: end_index]
-
-                batch_X = formatX(batch_X,self.signal_size)
-                batch_Y = formatY(batch_Y,self.class_count)
-                yield (batch_X,batch_Y)
 
 
 class BatchIterator(object):
@@ -146,38 +101,6 @@ class BatchIterator(object):
                 batch_X = formatX(batch_X,self.signal_size)
                 batch_Y = formatY(batch_Y,self.class_count)
                 yield (batch_X,batch_Y)
-
-class TestDataGenerator(object):
-
-    def __init__(self,x, y, batch_size,signal_size,class_count,epoch):
-
-        self.x = np.array(x,np.float32)
-        self.y = y
-        self.batch_size = batch_size
-        self.signal_size = signal_size
-        self.class_count = class_count
-        self.epoch = epoch
-        print("Number of validaion data ",len(self.x))
-        print("Number of training batches ",self.numbatch())
-
-    def numbatch(self):
-        #return int((len(self.x) - 1) / self.batch_size) + 1
-        return  int(np.ceil(len(self.x)/self.batch_size))
-
-    def flow(self):
-
-        for n in range(self.epoch+1):
-            num_batches_per_epoch = self.numbatch()
-            print("Test batches per epoch:",num_batches_per_epoch)
-            for batch_num in range(num_batches_per_epoch):
-                start_index = batch_num * self.batch_size
-                end_index = min((batch_num + 1) * self.batch_size, len(self.x))
-                batch_X = self.x[start_index: end_index]
-                batch_Y = self.y[start_index: end_index]
-                batch_X = formatX(batch_X,self.signal_size)
-                batch_Y = formatY(batch_Y,self.class_count)
-                yield (batch_X,batch_Y)
-
 
 class CustomDataGenerator(Sequence):
 
