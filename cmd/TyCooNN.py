@@ -4,8 +4,9 @@ import sys
 sys.path.append("../")
 import preprocess.MakeTrainingPq as mkpq
 import inference.Inference as inference
+import inference.Evaluate as evaluate
 import training.Training as training
-import training.Training_v2 as trainingv2
+import training.experimental.Training_v2 as trainingv2
 
 @click.group()
 def cmd():
@@ -89,7 +90,7 @@ def evaluate(input, modeldir, outcsv, threshold):
     filename,extension = os.path.splitext(outcsv)
     filename2 = filename + "_thresh"
     outcsv2 = filename2 + extension
-    inference.evaluate(input, modeldir, outcsv, outcsv2, threshold)
+    evaluate.evaluate(input, modeldir, outcsv, outcsv2, threshold)
 
 # infer on any parquet file (just for a handy feature)
 # note this will not generate any fast5 file however it can be applied to
@@ -101,7 +102,7 @@ def evaluate(input, modeldir, outcsv, threshold):
 @click.option('-t', '--threshold', default=0.75)
 def handyevaluate(input, modeldir, outcsv, threshold):
 
-    inference.evaluatepq(input, modeldir, outcsv, threshold)
+    evaluate.evaluatepq(input, modeldir, outcsv, threshold)
 
 #@cmd.command(name='analysis')
 #@click.option('-p', '--paramPath',default='settings.yaml')
