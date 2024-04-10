@@ -6,7 +6,6 @@ import preprocess.MakeTrainingPq as mkpq
 import inference.Inference as inference
 import inference.Evaluate as evaluate
 import training.Training as training
-import training.experimental.Training_v2 as trainingv2
 
 @click.group()
 def cmd():
@@ -47,24 +46,6 @@ def train(input, outdir,  epoch, data_augment):
 
     training.train(input, outdir, epoch, data_augment)
 
-# misc. other training when we pre-separate data into test and train
-@cmd.command(name='train2')
-@click.option('-t', '--train')  # path for train parquet files
-@click.option('-v', '--test')   # path for test parquet files
-@click.option('-l', '--labels') # text file including names of tRNAs for which the parquet files are loaded
-@click.option('-o', '--outdir')
-@click.option('-e', '--epoch',default=100)
-@click.option('-a', '--data_augment',default=0)
-def trainV2(train, test, labels, outdir, epoch, data_augment):
-
-    input = {'train': {}, 'test': {}}
-    with open(labels,'r') as flist:
-        for label in flist:
-            label = label.strip()
-            input['train'][label] = train + "/" + label + ".pq"
-            input['test'][label]  = test  + "/" + label + ".pq"
-    trainingv2.trainFromSeparated(input, outdir, epoch, data_augment)
-
 # infer on a fast5 dataset
 @cmd.command(name='infer')
 @click.option('-i', '--input')
@@ -91,29 +72,6 @@ def evaluate(input, modeldir, outcsv, threshold):
     filename2 = filename + "_thresh"
     outcsv2 = filename2 + extension
     evaluate.evaluate(input, modeldir, outcsv, outcsv2, threshold)
-
-# infer on any parquet file (just for a handy feature)
-# note this will not generate any fast5 file however it can be applied to
-# a pre-made parquet file
-@cmd.command(name='handyevaluate')
-@click.option('-i', '--input')  # input parquet file
-@click.option('-m', '--modeldir')
-@click.option('-o', '--outcsv')
-@click.option('-t', '--threshold', default=0.75)
-def handyevaluate(input, modeldir, outcsv, threshold):
-
-    evaluate.evaluatepq(input, modeldir, outcsv, threshold)
-
-#@cmd.command(name='analysis')
-#@click.option('-p', '--paramPath',default='settings.yaml')
-#@click.option('-i', '--indir')
-#@click.option('-c', '--configdir')
-#@click.option('-o', '--outpath')
-#@click.option('-f', '--fasta')
-#@click.option('-f5', '--fasta5out', required=False, default="M")
-#def analysis(paramPath, indirs, configdir, outpath, fasta, fasta5out):
-#
-#    inference.evaluate(paramPath, indirs, configdir, outpath, fasta, fasta5out)
 
 if __name__ == '__main__':
     main()

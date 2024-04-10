@@ -217,4 +217,24 @@ def train_with_input(X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes,outdir
                  fig_size_height=FIG_SIZE_HEIGHT,
                  lim_font_size=FIG_FONT_SIZE)
 
+def trainV2(train, test, labels, outdir, epoch, data_augment):
+
+    """
+-        for misc. other training when we pre-separate data into test and train
+
+         train:        location of parquet files holding train data
+         test:         location of parquet files holding test data
+         labels:        text file including names of tRNAs for parquet files
+         outdir:       trained model directory
+         epoch,        default=100
+         data_augment: default=0
+
+    """
+    input = {'train': {}, 'test': {}}
+    with open(labels,'r') as flist:
+        for label in flist:
+            label = label.strip()
+            input['train'][label] = train + "/" + label + ".pq"
+            input['test'][label]  = test  + "/" + label + ".pq"
+    trainingv2.trainFromSeparated(input, outdir, epoch, data_augment)
 

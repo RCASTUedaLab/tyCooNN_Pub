@@ -134,6 +134,22 @@ def evaluate(input, modeldir, outcsv, outcsv2, threshold):
 
 def evaluatepq(input, modeldir, outcsv, threshold):
 
+    """
+    - Inference on any parquet file (just for a handy feature)
+
+    note this will not generate any fast5 file however it can be applied
+    to a pre-made parquet file
+
+
+    python tyCooNN.py handyevaluate
+
+       input:     input directory for fast5 files
+       modeldir:  location of trained model
+       outcsv:    file-name for abundances of species
+       threshold: post-filter threshold
+
+    """
+
     modelweight = modeldir + "learent_arg_weight.h5"
     if not os.path.isfile(modelweight):
         modelweight = modeldir + "/learent_weight.h5"
