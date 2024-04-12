@@ -62,14 +62,13 @@
        -o, --outdir
        -c, --csvout
        -t, --threshold [default: 0.75]
-
 ```
 
 ![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/32e80c118a4288618e2917fef73b27a2a97d0c18/.doc/doc_image_03.jpg)
 
 
 ### 4. Inference using data of total tRNA and classify
-       optionally use a post-filter threshold on soft-max probabilities
+    - optionally use a post-filter threshold on soft-max probabilities
 
 
 ```
