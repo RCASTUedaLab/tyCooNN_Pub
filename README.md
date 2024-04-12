@@ -71,6 +71,8 @@
 ### 4. Inference using data of total tRNA and classify
 
     optionally use a post-filter threshold on soft-max probabilities
+
+
 ```
     python tyCooNN.py infer   
    
