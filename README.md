@@ -90,6 +90,7 @@ optionally use a post-filter threshold on soft-max probabilities
 ## Parameter file
 -- example of parameter file
 
+```
    max_core: 5  #maxcore　<br>
     #for filterling　<br>
    qval_min: 4  #q-value filter  threshold　<br> 
@@ -107,12 +108,13 @@ optionally use a post-filter threshold on soft-max probabilities
    firstAdaptor: GUAUCCUCCCAGAGAGAGAGAGAGAGAGAGAGA　<br>
     #trimlen　<br>
    trimlen: 8192　<br>
+```
 
 ## fast5 output format
 
   Analysis/Basecall_1D_099/BaseCalled_template/Fast5 ： tRNA reference sequence will be add for each read
   
-  Analysis/Basecall_1D_099　:following data will be add as a attribute to the group <br>
+  Analysis/Basecall_1D_099　: following data will be add as a attribute to the group <br>
   
             tRNA : tRNA label　
             tRNAIndex :tRNA Index　
