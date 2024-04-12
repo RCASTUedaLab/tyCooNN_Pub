@@ -35,7 +35,7 @@
         -ls, --listOfIOPath
         -p, --paramPath,default='settings.yaml'
 
-![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_01.jpg)
+![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/013f4717bc4de9e511323606930f9933e75e1370/.doc/doc_image_01.jpg)
 
 ### 2. train 
   - train CNN model using isolated tRNA data sets and save weight
