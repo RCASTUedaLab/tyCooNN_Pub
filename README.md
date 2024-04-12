@@ -41,22 +41,21 @@
 ### 2. train 
   - train CNN model using isolated tRNA data sets and save weight
      
-
+```
     python tyCooNN.py train
     
         -i, --input
         -o, --outdir
         -e, --epoch,default=50
-        -a, --data_augment,default=3        
+        -a, --data_augment,default=3
+```      
 
 ![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/e41c3ae29571abbd252a89b720a2880f01ce2759/.doc/doc_image_02.jpg)
 
 ### 3. Evaluate
   - test accuracy of model using isolated tRNA data sets
-
-
     
-
+```
     python tyCooNN.py evaluate
     
        -i, --input
@@ -64,6 +63,7 @@
        -c, --csvout
        -t, --threshold [default: 0.75]
 
+```
 
 ![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/32e80c118a4288618e2917fef73b27a2a97d0c18/.doc/doc_image_03.jpg)
 
@@ -71,7 +71,7 @@
 ### 4. Inference using data of total tRNA and classify
 
     optionally use a post-filter threshold on soft-max probabilities
-
+```
     python tyCooNN.py infer   
    
     -p, --paramPath,default='settings.yaml'
@@ -81,7 +81,7 @@
 
        -f, --fast5fmt  # 'S' or 'M' for single-fast5 or multi-fast5 output
        -t, --threshold # post-filter threshold
-
+```
 
 ![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/13a4d929f20dd05f503c5c1f7aa806c524863f48/.doc/doc_image_04.jpg)
     
