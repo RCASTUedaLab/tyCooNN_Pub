@@ -19,19 +19,22 @@
 ### 1.　makeparquet
   - Prepare training dataset for each tRNA,Read fast5, format (trimming of custom Adapter) and convert it to parquet file
      
-
-    python tyCooNN.py makeparquetEach      
+```
+    python tyCooNN.py makeparquetEach
+         
         -l, --tRNAlabel
         -i, --indir
         -o, --outpq
         -c, --takeCount,default=12000
         -p, --paramPath,default='settings.yaml'
-
+```
   or
-
+```
     python tyCooNN.py makeparquetAll
+
         -ls, --listOfIOPath
         -p, --paramPath,default='settings.yaml'
+```
 
 ![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/013f4717bc4de9e511323606930f9933e75e1370/.doc/doc_image_01.jpg)
 
