@@ -82,7 +82,7 @@
        -t, --threshold # post-filter threshold
 
 
-![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_04.jpg)
+![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/13a4d929f20dd05f503c5c1f7aa806c524863f48/.doc/doc_image_04.jpg)
     
 
 ## Parameter file
