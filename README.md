@@ -48,7 +48,7 @@
         -e, --epoch,default=50
         -a, --data_augment,default=3        
 
-![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_02.jpg)
+![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/e41c3ae29571abbd252a89b720a2880f01ce2759/.doc/doc_image_02.jpg)
 
 ### 3. Evaluate
   - test accuracy of model using isolated tRNA data sets
