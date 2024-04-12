@@ -64,7 +64,7 @@
        -t, --threshold [default: 0.75]
 
 
-![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_03.jpg)
+![image](https://github.com/RCASTUedaLab/tyCooNN_Pub/blob/32e80c118a4288618e2917fef73b27a2a97d0c18/.doc/doc_image_03.jpg)
 
 
 ### 4. Inference using data of total tRNA and classify
