@@ -35,7 +35,7 @@
         -ls, --listOfIOPath
         -p, --paramPath,default='settings.yaml'
 
-![image](https://user-images.githubusercontent.com/70622849/140273121-1d7312ee-d1e9-4891-aa3d-dc2a4a86853d.png)
+![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_01.jpg)
 
 ### 2. train 
   - train CNN model using isolated tRNA data sets and save weight
@@ -48,7 +48,7 @@
         -e, --epoch,default=50
         -a, --data_augment,default=3        
 
-![[image]]("doc/doc_image_02.jpg")
+![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_02.jpg)
 
 ### 3. Evaluate
   - test accuracy of model using isolated tRNA data sets
@@ -64,8 +64,7 @@
        -t, --threshold [default: 0.75]
 
 
-![image](https://user-images.githubusercontent.com/70622849/140274997-45208886-d4f7-4a21-846f-7a7ab42dd6d2.png)
-
+![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_03.jpg)
 
 
 ### 4. Inference using data of total tRNA and classify
@@ -83,7 +82,7 @@
        -t, --threshold # post-filter threshold
 
 
-![image](https://user-images.githubusercontent.com/70622849/140275201-811d7f05-112e-4609-acfd-bb800f088a83.png)
+![image](https://raw.githubusercontent.com/RCASTUedaLab/tyCooNN_Pub/.doc/doc_image_04.jpg)
     
 
 ## Parameter file
