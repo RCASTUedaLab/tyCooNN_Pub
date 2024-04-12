@@ -48,7 +48,7 @@
         -e, --epoch,default=50
         -a, --data_augment,default=3        
 
-![image](https://user-images.githubusercontent.com/70622849/140274886-1758e556-b769-4088-b1be-a6ff77659b8f.png)
+![[image]]("doc/doc_image_02.jpg")
 
 ### 3. Evaluate
   - test accuracy of model using isolated tRNA data sets
