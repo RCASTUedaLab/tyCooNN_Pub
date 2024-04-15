@@ -1,7 +1,6 @@
 import click
 import os.path
 import sys
-sys.path.append("../")
 import preprocess.MakeTrainingPq as mkpq
 import inference.Inference as inference
 import inference.Evaluate as evaluate
