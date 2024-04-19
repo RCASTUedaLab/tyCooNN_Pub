@@ -34,6 +34,8 @@ def formatY(Y,num_classes):
 def train(dirpath,outdir,epoch = 50,data_augment = 0):
 
     print(dirpath)
+
+    # Ref 1
     fs = glob.glob(dirpath + "/*.pq*")
     print(fs)
     trnas = []
@@ -75,6 +77,7 @@ def train(dirpath,outdir,epoch = 50,data_augment = 0):
     Y_train = list(map(lambda trna: trnas.index(trna), Y_train))
     Y_test = list(map(lambda trna: trnas.index(trna), Y_test))
     num_classes = np.unique(Y_train).size
+    # End Ref 1
 
     if data_augment == 0:
 

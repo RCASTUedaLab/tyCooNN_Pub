@@ -81,6 +81,14 @@ def load_structured_data(input):
            Under 'test' is a dictionary with label (tRNA) as keys and filename as values
            So first one need to create separate train and test data in different files
            and prepare the 'input' dictionary
+    For example:
+    input = {'train': {'ala1':/path/to/train/parquet/ala1.pq,
+                       'trp': /path/to/train/parquet/trp.pq,
+                       ...},
+             'test':  {'ala1':/path/to/test/parquet/ala1.pq,
+                       'trp': /path/to/test/parquet/trp.pq,
+                       ...}
+            }
     """
 
     print("start")
@@ -90,8 +98,6 @@ def load_structured_data(input):
     X_test  = []
     Y_test  = []
     wlen = 0
-    #limit_train = 2000
-    #limit_test  = 400
     for label in input['train'].keys():
         print("Load %s from train" % label)
         input_pq = input['train'][label]
@@ -131,20 +137,28 @@ def load_structured_data(input):
     return X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes
 
 def trainFromSeparated(input,outdir,epoch = 50,data_augment = 0,loss_fn='categorical_crossentropy'):
+    '''
+    A typical use of this mode of training is to use trainFromSeparated with dictionary based input
+    See structure of input under load_structured_data function.
+    '''
 
     print("Init")
     X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes = load_structured_data(input)
     train_with_input(X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes,outdir,epoch=epoch,gpu=gpu,data_augment=data_augment,loss_fn=loss_fn)
 
 def train(dirpath,outdir,epoch = 50,data_augment = 0,loss_fn='categorical_crossentropy'):
+    '''
+    This is usual mode of training with 12000 reads per tRNA, split into 10000 in train and 2000 in validation
+    '''
 
     X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes = load_data(dirpath)
     train_with_input(X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes,outdir,epoch=epoch,gpu=gpu,data_augment=data_augment,loss_fn=loss_fn)
 
 def train_with_input(X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes,outdir,epoch = 50,
                      data_augment = 0,loss_fn = 'categorical_crossentropy'):
-
-
+    '''
+    General function for common operation between train and trainFromSeparated.
+    '''
     if data_augment == 0:
 
         lr = 0.0008
@@ -220,11 +234,12 @@ def train_with_input(X_train,Y_train,X_test,Y_test,wlen,trnas,num_classes,outdir
 def trainV2(train, test, labels, outdir, epoch, data_augment):
 
     """
--        for misc. other training when we pre-separate data into test and train
+-        for misc. other training when we pre-separate data into test and train.
+         This function is a handy way to use trainFromSeparated.  
 
          train:        location of parquet files holding train data
          test:         location of parquet files holding test data
-         labels:        text file including names of tRNAs for parquet files
+         labels:       text file including names of tRNAs for parquet files
          outdir:       trained model directory
          epoch,        default=100
          data_augment: default=0
