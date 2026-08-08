@@ -1,20 +1,8 @@
 import preprocess.TrimAndNormalize as tn
-from multiprocessing import Pool
 import utils.tyUtils as ut
 import pandas as pd
 import csv
 from collections import Counter
-
-def split_list(lst, n):
-    splitted = []
-    for i in reversed(range(1, n + 1)):
-        split_point = len(lst)//i
-        splitted.append(lst[:split_point])
-        lst = lst[split_point:]
-    return splitted
-def flatten(lst):
-    return [item for sublist in lst for item in sublist]
-
 
 def generatePqForTrainingAll(paramPath,listOfIOPath,takeCount=12000):
 

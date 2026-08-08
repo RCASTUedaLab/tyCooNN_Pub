@@ -1,8 +1,0 @@
-while read -r line;do
-  s1=`echo $line | cut -f1 -d" "`
-  s2=`echo $line | cut -f2 -d" "`
-  s=`echo $line | cut -f3 -d" "`
-  echo $s1 $s2 $s
-  ln -sf /mnt/share/bhaskar/rcc_data_extend/rcc_split_data_v2/${s}/${s1}_merge.pq ${s1}.pq
-  ln -sf /mnt/share/bhaskar/rcc_data_extend/rcc_split_data_v2/${s}/${s2}_merge.pq ${s2}.pq
-done < 'special_species'

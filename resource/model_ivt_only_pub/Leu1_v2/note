@@ -1,4 +1,0 @@
-learent_arg_weight.h5 is renamed to weight_aug.h5
-learent_weight.h5 is renamed to weight.h5
-
-weight.h5 is linked to learent_arg_weight.h5
