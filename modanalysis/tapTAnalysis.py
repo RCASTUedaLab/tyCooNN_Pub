@@ -107,17 +107,26 @@ def getRR(mr):
 ref = "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
 # bam0 = "/mnt/share/ueda/TyCooNNPub/wt/sample_sorted.bam"
 bam0 = "/mnt/share/ueda/TyCooNNPubTest/wt/sample_sorted.bam"
-bam1 = "/mnt/share/ueda/TyCooNNPubTest/thii/sample_sorted.bam"
+bam1 = "/mnt/share/ueda/TyCooNNPubTest/tapT/sample_sorted.bam"
 
 
-trnas = ["Ala1B","Ala2","Arg2","Arg3","Arg4","Arg5","Asn","Asp","Cys","fMet1",
-         "fMet2","Gln1","Gln2","Glu","Gly1","Gly2","Gly3","His","Ile1","Ile2","Leu1","Leu2","Leu4","Leu5",
-         "Lys","Met","Phe", "Pro1","Ser1","Ser2","Ser3","Ser5","Thr1","Thr3","Trp","Tyr1","Tyr2","Val1","Val2A","Val2B"]
+
+trnas = ["Arg2","Ile1","Ile2","Lys","Met","Phe"]
 for trna in trnas:
 
-    position = 7
-    if trna == "His" or trna == "Sec":
-        position = 8
+    position = 47
+    if trna =="Arg2":
+        position = 47
+    if trna =="Ile2":
+        position = 46
+    if trna =="Lys":
+        position = 46
+    if trna =="Phe":
+        position = 46
+    if trna =="Met":
+        position = 47
+
+
 
     mr0 = countmismatchratio(bam0, position, ref,trna)
     mr1 = countmismatchratio(bam1, position, ref,trna)
@@ -127,71 +136,4 @@ for trna in trnas:
 
 print("-------------------------------------------")
 print("-------------------------------------------")
-
-bam1 = "/mnt/share/ueda/TyCooNNPubTest/trub/sample_sorted.bam"
-
-samfile1 = pysam.AlignmentFile(bam0, "rb")
-trnas = samfile1.references
-samfile1.close()
-
-g63 = ["Leu5"]
-g65 = ["Leu1","Leu2","Leu4"]
-g55 = ["Arg2","Arg3","Arg4","Asp","His","Met","Pro1","Val2A","Val2B","fMet1","fMet2"]
-g53 = ["Gln1","Gln2","Gly2","Arg5"]
-g52 = ["Gly1","Cys"]
-
-nc = ["Ile2v","Leu1_P","Leu3","Pro2","Pro3","Thr2","Thr4"]
-
-for trna in trnas:
-
-    if trna in nc:
-        continue
-
-    position = 54
-    if trna in g55:
-        position = 55
-    if trna in g53:
-        position = 53
-    if trna in g52 :
-        position = 52
-    if trna in g65 :
-        position = 65
-    if trna in g63 :
-        position = 63
-    if trna == "Sec" :
-        position = 72
-    if trna == "Ser1" :
-        position = 66
-    if trna == "Ser2" :
-        position = 68
-    if trna == "Ser5" :
-        position = 66
-    if trna == "Ser3" :
-        position = 71
-    if trna == "Tyr1" :
-        position = 63
-    if trna == "Tyr2" :
-        position = 63
-    if trna == "His" :
-        position = 54
-    if trna == "Ile1" :
-        position = 55
-    if trna == "Ile2" :
-        position = 54
-
-    mr0 = countmismatchratio(bam0, position, ref, trna)
-    mr1 = countmismatchratio(bam1, position, ref, trna)
-    r1 = getRR(mr0)
-    r2 = getRR(mr1)
-    print(position, trna, r1, r2, r1 - r2)
-
-    # if trna != "Ser2" :
-    #     continue
-    #
-    # for position in range(position-10,position+10):
-    #     mr0 = countmismatchratio(bam0, position, ref,trna)
-    #     mr1 = countmismatchratio(bam1, position, ref,trna)
-    #     r1 = getRR(mr0)
-    #     r2 = getRR(mr1)
-    #     print(position,trna, r1,r2,r1-r2 )
 

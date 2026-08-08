@@ -89,7 +89,7 @@ def splitBytRNA(alldata,threshold):
 
 import pysam
 import mappy as mp
-maxcnt = 1000
+maxcnt = 12000
 def maptoref(bam,ref,refdir,alldata,threshold):
 
     bam_file = pysam.AlignmentFile(bam, 'wb', header=getHeader(ref))
@@ -100,11 +100,12 @@ def maptoref(bam,ref,refdir,alldata,threshold):
         if "_rcc" in trna:
             trna = trna.replace("_rcc","")
 
-        ref = refdir + "/" + trna + ".fasta"
+        ref = refdir + "/" + trna + ".fa"
 
         aligner = mp.Aligner(ref, n_threads=10, min_dp_score=15, w=4, bw=1, k=1,
                              best_n=1, min_cnt=1, min_chain_score=1)  # load or build index
 
+        print(ref)
         cnt = 0
         mappedc = 0
         fastqlist = readdict[trna]
@@ -115,6 +116,7 @@ def maptoref(bam,ref,refdir,alldata,threshold):
 
             for hit in aligner.map(sequence, MD=True):
 
+                # print("hit")
                 if hit.strand == -1:
                     continue
 
@@ -172,13 +174,19 @@ def evaluate(paramPath,indirs,outdir,outpath,ref, refdir,threshold=0.75):
         outweight = outdir + "/learent_arg_weight.h5"
 
     param = ut.get_parameter(paramPath)
+
+    print("end loading file")
     # indirs = indirs.split(",")
     f5list = []
+    print(indirs)
     for dir in indirs:
+
+        print(dir)
         f5list.extend(ut.get_fast5_files_in_dir(dir, param.ncore))
 
     random.shuffle(f5list)
 
+    print(f5list)
     # maxf5 = 30
     # f5list = f5list[0:maxf5]
 
@@ -257,6 +265,11 @@ def fastaToDict(fasta):
 
     return seqdict
 
+def UtoT(seq):
+
+    if seq is not None:
+        return seq.replace("U","T")
+    return seq
 
 # do it file by file
 def evaluateEach(param, f5file, outpath, model, trnas, cnt_file, threshold):
@@ -298,7 +311,8 @@ def evaluateEach(param, f5file, outpath, model, trnas, cnt_file, threshold):
 
         # print(read.read_id)
         if (read.filterFlg == 0):
-            datadict[read.read_id] = MiniCounter(read.filterFlg, read.trimSuccess,read.fastq)
+
+            datadict[read.read_id] = MiniCounter(read.filterFlg, read.trimSuccess,UtoT(read.fastq))
             datalabel.append(read.read_id)
             data.append(read.formatSignal)
 

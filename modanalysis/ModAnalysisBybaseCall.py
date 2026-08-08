@@ -316,13 +316,13 @@ def analyseROC(matrix, modindexs, modlist,outdir):
     auc_s4U = auc(fpr_s4U, tpr_s4U)
 
     # ROCvbg
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8, 8))
 
     plt.plot(fpr_all, tpr_all, color='blue', lw=2, label=f'All modification (AUC = {auc_all:.2f})')
     psi = "\u03A8"
     plt.plot(fpr_y, tpr_y, color='green', lw=2, label=psi+f' (AUC = {auc_y:.2f})')
     plt.plot(fpr_m7G, tpr_m7G, color='red', lw=2, label=f'm7G (AUC = {auc_m7G:.2f})')
-    plt.plot(fpr_s4U, tpr_s4U, color='red', lw=2, label=f's4U (AUC = {auc_s4U:.2f})')
+    plt.plot(fpr_s4U, tpr_s4U, color='orange', lw=2, label=f's4U (AUC = {auc_s4U:.2f})')
 
     plt.plot([0, 1], [0, 1], color='darkgray', lw=2, linestyle='--')
     plt.xlim([0.0, 1.0])
@@ -330,7 +330,7 @@ def analyseROC(matrix, modindexs, modlist,outdir):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title('Receiver Operating Characteristic (ROC) - Multiple Models')
-    plt.legend(loc="lower right")
+    # plt.legend(loc="lower right")
 
 
     out = outdir + "/roc.png"
@@ -344,6 +344,7 @@ def analyzeResolution(matrix,modindexs,row,col):
     if val < thres:
         return 1
 
+    thres = val/2
     m = col-1
     left = 0
     while m > 0:
@@ -446,7 +447,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import auc
 from matplotlib.gridspec import GridSpec
 import numpy as np
-
+csfont = {'fontname':'Times New Roman'}
 def plotScater(d,outdir,avenonmod,nonmodsd):
 
     #psude
@@ -480,8 +481,8 @@ def plotScater(d,outdir,avenonmod,nonmodsd):
 
     ax_histx.set_xlim(ax_scatter.get_xlim())
     ax_histy.set_ylim(ax_scatter.get_ylim())
-    ax_scatter.set_xlabel("Base resolution")
-    ax_scatter.set_ylabel("Misbasecall ratio (log2)")
+    ax_scatter.set_xlabel("Base resolution",fontsize=20,**csfont)
+    ax_scatter.set_ylabel("Misbasecall ratio (log2)",fontsize=20,**csfont)
     ax_scatter.legend()
     plt.setp(ax_histx.get_xticklabels(), visible=False)
     plt.setp(ax_histy.get_yticklabels(), visible=False)
@@ -509,7 +510,7 @@ def plotScater(d,outdir,avenonmod,nonmodsd):
         sdy = np.std(ye, ddof=1)
         y_err.append(sdy)
 
-    x_range = [0, 9]
+    x_range = [0, 6]
     y_range = [0, 7]
 
     # plt.scatter(x, y)  # Uz}
@@ -595,8 +596,9 @@ bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
 bam1 = "/mnt/share/ueda/trna_data/bam/ivt_sorted.bam"
 ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
 # matrixref = "/mnt/share/ueda/trna_data/tRNAEcoli.csv"
-matrixref = "/mnt/share/ueda/trna_data/ecoliTrna_paper.csv"
-outdir = "/mnt/share/ueda/minimapmapping/ivt"
+# matrixref = "/mnt/share/ueda/trna_data/ecoliTrna_paper.csv"
+matrixref = "/mnt/share/ueda/trna_data/ecoliTrna_paper_25.csv"
+outdir = "/mnt/share/ueda/minimapmapping/ivt_2025"
 
 compare(bam2,bam1,ref,matrixref,outdir,"rcc_ivt")
 
@@ -604,29 +606,29 @@ compare(bam2,bam1,ref,matrixref,outdir,"rcc_ivt")
 ref =  "/home/ueda/project/tRex/referencetest/ecolitRNA_unmod_full.fa"
 
 
-enzimes = ["trub","thii"]
+enzimes = ["tapT"]
 
-for ez in enzimes:
-
-    bam1 = "/mnt/share/ueda/TyCooNNPubTest/"+ez+"/sample_sorted.bam"
-    bam2 = "/mnt/share/ueda/TyCooNNPubTest/wt/sample_sorted.bam"
-    outdir = "/mnt/share/ueda/minimapmapping/"+ez
-    compare(bam2,bam1,ref,matrixref,outdir,ez)
-
-# enzimes = ["thii_wt","trmb_wt","trub_wt"]
-#
 # for ez in enzimes:
-#     # bam1 = "/mnt/share/ueda/TyCooNNPub/"+ez+"/sample_sorted.bam"
-#     bam2 = "/mnt/share/ueda/TyCooNNPub/wt/sample_sorted.bam"
-#     bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+#
+#     bam1 = "/mnt/share/ueda/TyCooNNPubTest/"+ez+"/sample_sorted.bam"
+#     bam2 = "/mnt/share/ueda/TyCooNNPubTest/wt/sample_sorted.bam"
 #     outdir = "/mnt/share/ueda/minimapmapping/"+ez
 #     compare(bam2,bam1,ref,matrixref,outdir,ez)
 
+enzimes = ["thii_wt","trmb_wt","trub_wt"]
 
-bam1 = "/mnt/share/ueda/TyCooNNPubTest/thii/sample_sorted.bam"
-bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
-outdir = "/mnt/share/ueda/minimapmapping/thii_rcc"
-compare(bam2,bam1,ref,matrixref,outdir,ez)
+for ez in enzimes:
+    # bam1 = "/mnt/share/ueda/TyCooNNPub/"+ez+"/sample_sorted.bam"
+    bam2 = "/mnt/share/ueda/TyCooNNPub/wt/sample_sorted.bam"
+    bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+    outdir = "/mnt/share/ueda/minimapmapping/"+ez
+    compare(bam2,bam1,ref,matrixref,outdir,ez)
+
+
+# bam1 = "/mnt/share/ueda/TyCooNNPubTest/thii/sample_sorted.bam"
+# bam2 = "/mnt/share/ueda/trna_data/bam/rcc_sorted.bam"
+# outdir = "/mnt/share/ueda/minimapmapping/thii_rcc"
+# compare(bam2,bam1,ref,matrixref,outdir,ez)
 
 
 # ez ="thii_trub"

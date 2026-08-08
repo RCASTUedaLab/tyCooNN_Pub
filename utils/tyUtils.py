@@ -124,6 +124,10 @@ def check_ok_file(file:str):
                 fastq = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Fastq")
                 trace = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Trace")
                 move = read.get_analysis_dataset(basecall_run, "BaseCalled_template/Move")
+                # # print(read.read_id)
+                # if readid == "9afe15b3-8e9d-4ac7-8103-8e9428499673":
+                #     print(fastq)
+
             ok = True
     except:
 
@@ -194,7 +198,7 @@ def get_fast5_reads_from_file(fast5_filepath:str):
             #read_id, signal, tracelen, fastq
             if len(trace) >0:
                 #read_id, signal, trace, move, fastq, duration):
-                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration,map_attrs=map_attrs)
+                read = Read(read_id=readid,signal=pA_signal,trace=trace,move=move,fastq=fastq,duration=duration)
                 reads.append(read)
 
     return reads
